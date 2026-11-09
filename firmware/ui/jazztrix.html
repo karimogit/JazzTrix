@@ -1,0 +1,1694 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JazzTrix — Setup</title>
+<link rel="icon" id="favicon" href="data:,">
+<style>
+  :root {
+    --ink: #1b140f;
+    --paper: #f6f0e4;
+    --card: #fffaf2;
+    --red: #d4533a;
+    --gold: #e2b340;
+    --sea: #2c6d72;
+    --line: #e4d8c4;
+    --muted: #7a6b5c;
+    --shadow: 0 16px 40px rgba(40, 22, 8, .08);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 420px at 100% -10%, rgba(226, 179, 64, .35), transparent 60%),
+      radial-gradient(700px 380px at -10% 20%, rgba(212, 83, 58, .18), transparent 55%),
+      var(--paper);
+    font-family: "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    line-height: 1.4;
+  }
+  header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 1.85rem 1.35rem 1.55rem;
+  }
+  .wrap { max-width: 32rem; margin: 0 auto; }
+  h1 {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-weight: 600;
+    font-size: 3rem;
+    line-height: .9;
+    margin: 0;
+    letter-spacing: -.03em;
+  }
+  h1 .word { font-size: .42em; font-weight: 600; letter-spacing: .01em; white-space: nowrap; }
+  h1 .word::before { content: " — "; font-weight: 500; }
+  header { text-align: center; }
+  header p { margin-left: auto; margin-right: auto; }
+  header a { color: var(--gold); }
+  .mark { font-size: .72em; line-height: 1; margin-inline-end: .18em; vertical-align: -.06em; }
+  main { padding: 1.2rem 1.35rem 9rem; }
+  body.locked main { padding-bottom: 4.5rem; }
+  body.locked #settings, body.locked #deskBtn { display: none; }
+  body:not(.locked) #gate { display: none; }
+  section {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 1.15rem 1.15rem 1.25rem;
+    margin: 0 auto 1.05rem;
+    max-width: 32rem;
+    box-shadow: var(--shadow);
+  }
+  h2 {
+    font-family: "Iowan Old Style", Palatino, Georgia, serif;
+    font-size: 1.35rem;
+    margin: 0;
+  }
+  .head { display: flex; align-items: flex-start; justify-content: space-between; gap: .65rem; margin: 0 0 .15rem; }
+  .head.later { margin-top: 1.15rem; }
+  button.help {
+    flex: none;
+    width: 1.7rem;
+    height: 1.7rem;
+    margin-top: .05rem;
+    border: 1.5px solid var(--ink);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    font: 700 1rem/1 Georgia, "Iowan Old Style", serif;
+    cursor: pointer;
+  }
+  button.help.on { background: var(--ink); color: var(--paper); }
+  .helptext {
+    margin: .35rem 0 .85rem;
+    padding: .75rem .85rem;
+    background: #f3eadc;
+    border-radius: 12px;
+    font-size: .9rem;
+  }
+  .hint { color: var(--muted); margin: 0 0 .85rem; font-size: .9rem; }
+  header p { margin: .7rem auto 0; color: #e7dccb; max-width: 22rem; }
+  .savebar .ver { margin: .7rem 0 0; text-align: center; letter-spacing: .16em; font-size: .75rem; font-weight: 700; color: var(--muted); }
+  label.field { display: flex; flex-direction: column; align-items: stretch; margin-top: .75rem; font-size: .82rem; font-weight: 650; }
+  input[type="text"], input[type="password"], input[type="search"], select.plain, textarea {
+    width: 100%;
+    margin-top: .3rem;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    border-radius: 12px;
+    padding: .7rem .8rem;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 550;
+    line-height: 1.35;
+  }
+  textarea { min-height: 4.2rem; resize: vertical; }
+  ::placeholder { color: #b5a594; font-weight: 500; }
+  #pair {
+    font-size: 1.8rem;
+    letter-spacing: .35em;
+    text-align: center;
+    font-weight: 700;
+    padding: .85rem;
+  }
+  .station {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 14px;
+    padding: .75rem .8rem .9rem;
+    margin-top: .7rem;
+  }
+  .station-top { display: flex; align-items: center; gap: .4rem; }
+  .station-top b { flex: 1; font-size: .78rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+  .station label.field { margin-top: .45rem; }
+  .drop {
+    border: 0; background: transparent; color: var(--red); font: inherit; font-weight: 700; cursor: pointer; padding: .2rem .15rem;
+  }
+  #addStation:disabled { opacity: .4; }
+  button.action, button.ghost {
+    width: 100%;
+    margin-top: .75rem;
+    border: 0;
+    border-radius: 999px;
+    padding: .75rem 1rem;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  button.action { background: var(--ink); color: var(--paper); }
+  button.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  button.action:active { transform: translateY(1px); }
+  .status {
+    max-width: 32rem;
+    margin: 0 auto .85rem;
+    min-height: 1.2rem;
+    font-weight: 650;
+  }
+  .status.ok { color: var(--sea); }
+  .status.err { color: var(--red); }
+  .seg, .themes, .pigs { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: .35rem; }
+  .seg { margin-bottom: 1.35rem; }
+  .seg button, .themes button, .pigs button, .brush button {
+    border: 1px solid var(--line);
+    background: #fff;
+    border-radius: 999px;
+    padding: .45rem .75rem;
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+    color: var(--ink);
+  }
+  .seg button.on, .themes button.on, .brush button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .themes { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .themes button { border-radius: 14px; text-align: left; padding: .65rem .7rem; }
+  .themes button strong { display: block; font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 1.05rem; }
+  .themes button span { display: block; color: var(--muted); font-size: .75rem; font-weight: 500; }
+  .themes button.on span { color: #e7dccb; }
+  .swatch { width: 1.7rem; height: 1.7rem; border-radius: 50%; padding: 0; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--line); }
+  .swatch.on { box-shadow: 0 0 0 2px var(--ink); }
+  .k0 { background: #1b140f; } .k1 { background: #f3efe4; } .k2 { background: #e2b340; } .k3 { background: #d4533a; }
+  .line {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    padding: .45rem 0;
+    border-top: 1px solid var(--line);
+  }
+  .line:first-child { border-top: 0; }
+  .nudge {
+    width: 2rem; height: 2rem; border-radius: 10px;
+    border: 1px solid var(--line); background: #fff; font: inherit; cursor: pointer;
+  }
+  .line b { flex: 1; font-weight: 650; }
+  .switch { position: relative; width: 2.7rem; height: 1.55rem; cursor: pointer; }
+  .switch input { opacity: 0; position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; z-index: 1; }
+  .switch i {
+    position: absolute; inset: 0; background: #ddd2c2; border-radius: 999px;
+  }
+  .switch i:before {
+    content: ""; position: absolute; width: 1.15rem; height: 1.15rem; left: .2rem; top: .2rem;
+    background: #fff; border-radius: 50%; transition: transform .15s ease;
+  }
+  .switch input:checked + i { background: var(--red); }
+  .switch input:checked + i:before { transform: translateX(1.15rem); }
+  .blocks { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+  .block {
+    display: flex; align-items: center; justify-content: space-between;
+    border: 1px solid var(--line); border-radius: 14px; padding: .65rem .7rem; background: #fff;
+  }
+  .preview {
+    border-radius: 16px; overflow: hidden; border: 1px solid var(--line); background: #f3efe4; margin-bottom: .8rem;
+  }
+  .preview .bar { display: flex; justify-content: space-between; gap: .35rem; padding: .45rem .7rem; font-size: .72rem; font-weight: 700; }
+  .preview .bar span { white-space: nowrap; }
+  .preview .when { display: flex; gap: .4rem; align-items: baseline; }
+  .preview .body { padding: .7rem; }
+  .preview .temp { font-family: "Iowan Old Style", Palatino, Georgia, serif; font-size: 2.6rem; line-height: .9; }
+  .preview .temp small { font-size: 1rem; margin-left: .15rem; }
+  .preview .hero { display: flex; gap: .35rem; align-items: stretch; }
+  .preview .degrees, .preview .sky { border-radius: 8px; border: 1px solid transparent; padding: .15rem .3rem; }
+  .preview .degrees { flex: 1.15; }
+  .preview .sky { flex: 1; display: flex; align-items: center; gap: .3rem; font-weight: 750; font-size: .78rem; }
+  .preview .forecast { display: flex; gap: .15rem; margin-top: .5rem; padding: .35rem .2rem .25rem; border-radius: 8px; border: 1px solid transparent; }
+  .preview .forecast div { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: .12rem; font-size: .55rem; font-weight: 700; }
+  .preview .forecast i { display: block; width: 60%; border-radius: 2px 2px 0 0; }
+  .preview .forecast.graph { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; gap: .15rem .35rem; align-items: stretch; min-height: 4.4rem; }
+  .preview .forecast.graph .axis { display: flex; flex-direction: column; justify-content: space-between; align-items: flex-start; flex: none; min-height: 3.1rem; font-size: .55rem; font-weight: 700; }
+  .preview .forecast.graph svg { width: 100%; height: 3.1rem; display: block; }
+  .preview .forecast.graph .hours { grid-column: 2; display: flex; flex-direction: row; justify-content: space-between; align-items: flex-start; font-size: .55rem; font-weight: 700; }
+  .preview .row2 { display: flex; gap: .28rem; margin-top: .95rem; }
+  .preview .tile { flex: 1; min-width: 0; overflow: hidden; border-radius: 8px; padding: .28rem .25rem .32rem; font-size: .62rem; background: transparent; border: 1px solid transparent; }
+  .preview .tile b { display: block; font-size: .9rem; }
+  .preview .foot { display: flex; gap: .35rem; margin-top: .45rem; align-items: stretch; }
+  .preview .cup, .preview .poem, .preview .on { border-radius: 8px; padding: .35rem .45rem; font-weight: 800; font-size: .72rem; }
+  .preview .cup { flex: 0.7; }
+  .preview .poem { flex: 1.5; font-weight: 650; line-height: 1.15; font-size: .62rem; }
+  .preview .on { flex: 1.15; text-align: right; }
+  .preview .cup span, .preview .on span, .preview .poem span { display: block; font-size: .58rem; letter-spacing: .04em; font-weight: 800; white-space: nowrap; overflow: hidden; }
+  .preview.upper .poem span { text-transform: uppercase; }
+  .preview .cup, .preview .on, .preview .poem { overflow: hidden; }
+  .preview.upper .tile, .preview.upper .cup, .preview.upper .on { text-transform: uppercase; }
+  #customColors.off { display: none; }
+  .pig-row { margin-top: .55rem; }
+  .pig-row span { display: block; font-size: .78rem; font-weight: 700; margin-bottom: .25rem; }
+  select.places { width: 100%; margin-top: .5rem; border-radius: 12px; border: 1px solid var(--line); background: #fff; min-height: 6.5rem; font: inherit; padding: .3rem; }
+  .savebar {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: .8rem 1.35rem calc(.85rem + env(safe-area-inset-bottom));
+    background: rgba(246, 240, 228, .94);
+    backdrop-filter: blur(8px);
+    border-top: 1px solid var(--line);
+  }
+  .savebar button { max-width: 32rem; margin: 0 auto; display: block; background: var(--red); }
+  .savebar button:disabled { opacity: .65; }
+  .savebar .note {
+    max-width: 32rem;
+    margin: 0 auto .6rem;
+    text-align: center;
+    font-weight: 750;
+    font-size: .95rem;
+    color: var(--ink);
+  }
+  .savebar .note.ok { color: var(--sea); }
+  .savebar .note.err { color: var(--red); }
+</style>
+</head>
+<body class="locked">
+<header>
+  <div class="wrap">
+    <h1><span class="mark" aria-hidden="true">🎷</span>JazzTrix <span id="pageWord" class="word">Setup</span></h1>
+    <p id="blurb">A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.</p>
+  </div>
+</header>
+<main>
+  <div id="status" class="status" role="status"></div>
+
+  <section>
+    <div class="head"><h2 data-i18n="language">Language</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-language" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-language" hidden data-i18n="helpLanguage">The paper and this page follow this language.</p>
+    <p class="hint" data-i18n="languageHint">The paper and this page follow this language.</p>
+    <select id="language" class="plain">
+      <option value="en">English</option>
+      <option value="es">Español</option>
+      <option value="zh">中文</option>
+      <option value="de">Deutsch</option>
+      <option value="fr">Français</option>
+      <option value="it">Italiano</option>
+      <option value="pt">Português</option>
+      <option value="nl">Nederlands</option>
+      <option value="pl">Polski</option>
+    </select>
+  </section>
+
+  <section id="gate">
+    <div class="head"><h2 data-i18n="pairTitle">Pair this phone</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-pair" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-pair" hidden data-i18n="helpPair">Double-tap the round button. The paper shows six digits for about five minutes. Join JazzTrix-Setup and type the code here.</p>
+    <p class="hint" data-i18n="pairHint">Type the six digits on the display.</p>
+    <label class="field"><span data-i18n="pairCode">Pairing code</span>
+      <input id="pair" inputmode="numeric" maxlength="6" autocomplete="one-time-code" placeholder="••••••">
+    </label>
+    <button type="button" class="action" id="pairBtn" data-i18n="pairBtn">Pair</button>
+  </section>
+
+  <div id="settings">
+  <section>
+    <div class="head"><h2 data-i18n="wifiTitle">Wi‑Fi</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-wifi" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-wifi" hidden data-i18n="helpWifi">The home network. After you save, the password stays on the device. This page does not keep it.</p>
+    <p class="hint" data-i18n="wifiHint">The home network. The password stays on the device.</p>
+    <label class="field"><span data-i18n="network">Network name</span><input id="wifiSsid" type="text" autocomplete="off"></label>
+    <label class="field"><span data-i18n="password">Password</span><input id="wifiPass" type="password" autocomplete="off"></label>
+    <button type="button" class="action" id="wifiBtn" data-i18n="saveWifi">Save Wi‑Fi</button>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="weatherTitle">Weather</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-weather" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-weather" hidden data-i18n="helpWeather">Live weather for the place you pick. Hours ahead is the forecast: 3, 6, 9, or 12 hours. It draws as a graph, with the hours along the bottom and the temperatures on the left. Bars are the other choice. Wind can be m/s, km/h, or mph.</p>
+    <p class="hint" data-i18n="weatherHint">Search for the place that should sit on the paper.</p>
+    <label class="field"><span data-i18n="place">Place</span><input id="place" type="search" placeholder="Amsterdam, Lisbon, Kyoto…"></label>
+    <button type="button" class="ghost" id="searchBtn" data-i18n="searchPlaces">Search places</button>
+    <select id="places" class="places" size="4"></select>
+    <button type="button" class="action" id="locBtn" data-i18n="usePlace">Use this place</button>
+    <label class="field"><span data-i18n="temperature">Temperature</span>
+      <select id="units" hidden><option value="C">°C</option><option value="F">°F</option></select>
+      <div class="seg" data-for="units"><button type="button" data-v="C">°C</button><button type="button" data-v="F">°F</button></div>
+</label>
+    <label class="field"><span data-i18n="hoursAhead">Hours ahead</span>
+      <select id="forecastHours" hidden><option value="3">3 h</option><option value="6" selected>6 h</option><option value="9">9 h</option><option value="12">12 h</option></select>
+      <div class="seg" data-for="forecastHours"><button type="button" data-v="3">3 h</button><button type="button" data-v="6">6 h</button><button type="button" data-v="9">9 h</button><button type="button" data-v="12">12 h</button></div>
+</label>
+    <label class="field"><span data-i18n="forecastShape">Forecast</span>
+      <select id="forecastStyle" hidden><option value="0" selected>Graph</option><option value="1">Bars</option></select>
+      <div class="seg" data-for="forecastStyle"><button type="button" data-v="0" data-i18n="shapeGraph">Graph</button><button type="button" data-v="1" data-i18n="shapeBars">Bars</button></div>
+</label>
+    <label class="field"><span data-i18n="wind">Wind</span>
+      <select id="windUnit" hidden><option value="0">m/s</option><option value="1">km/h</option><option value="2">mph</option></select>
+      <div class="seg" data-for="windUnit"><button type="button" data-v="0">m/s</button><button type="button" data-v="1">km/h</button><button type="button" data-v="2">mph</button></div>
+    </label>
+    <label class="line"><b data-i18n="unitTitle">Show the unit in the title</b><span class="switch"><input type="checkbox" id="unitSuffix" checked><i></i></span></label>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="paperTitle">On the paper</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-paper" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-paper" hidden data-i18n="helpPaper">The large temperature and the forecast. Turn either one off. The rest of the paper stays.</p>
+    <p class="hint" data-i18n="paperHint">Turn the temperature or the forecast off.</p>
+    <div class="blocks">
+      <label class="block"><span data-i18n="blockTemp">Temperature</span><span class="switch"><input type="checkbox" id="bTemp" checked><i></i></span></label>
+      <label class="block"><span data-i18n="blockForecast">Forecast</span><span class="switch"><input type="checkbox" id="bForecast" checked><i></i></span></label>
+</div>
+    <div class="head later"><h2 data-i18n="bottomTitle">Bottom row</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-bottom" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-bottom" hidden data-i18n="helpBottom">Brew, radio, and the daily haiku. Turn a box off or move it. Up is toward the left, and the boxes that stay share the width. Tap the tag to add one to the brew count.</p>
+    <p class="hint" data-i18n="bottomHint">Turn a box off, or move it. Up is toward the left. The boxes share the width.</p>
+    <input id="footOrder" type="hidden" value="0,1,2">
+    <div id="footList">
+      <div class="line" data-id="0"><button type="button" class="nudge" data-dir="-1" aria-label="Move brew up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move brew down">↓</button><b data-i18n="brewTitle">Brew</b><span class="switch"><input type="checkbox" id="bCoffee" checked><i></i></span></div>
+      <div class="line" data-id="1"><button type="button" class="nudge" data-dir="-1" aria-label="Move radio up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move radio down">↓</button><b data-i18n="blockRadio">Radio</b><span class="switch"><input type="checkbox" id="bRadio" checked><i></i></span></div>
+      <div class="line" data-id="2"><button type="button" class="nudge" data-dir="-1" aria-label="Move haiku up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move haiku down">↓</button><b data-i18n="borderHaiku">Haiku</b><span class="switch"><input type="checkbox" id="bHaiku" checked><i></i></span></div>
+    </div>
+    <div class="head later"><h2 data-i18n="topTitle">Top bar</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-top" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-top" hidden data-i18n="helpTop">Weekday, date, time, place, Wi-Fi, and battery. Up moves an item toward the left. The clock follows the time zone. Choosing a place fills the zone in.</p>
+    <p class="hint" data-i18n="topHint">Weekday, date, and time follow the time zone. Choosing a place fills the zone in. Up moves a row toward the left of the screen.</p>
+    <label class="field"><span data-i18n="timezone">Time zone</span>
+      <select id="timezone" class="plain"></select>
+    </label>
+    <label class="field"><span data-i18n="time">Time</span>
+      <select id="clock24" hidden><option value="1">24 h</option><option value="0">12 h</option></select>
+      <div class="seg" data-for="clock24"><button type="button" data-v="1">24 h</button><button type="button" data-v="0">12 h</button></div>
+    </label>
+    <label class="field"><span data-i18n="date">Date</span>
+      <select id="dateFormat" hidden>
+        <option value="0">9 Nov</option><option value="1">Nov 9</option><option value="2">09/11</option><option value="3">11/09</option><option value="4">2026-11-09</option>
+      </select>
+      <div class="seg" data-for="dateFormat"><button type="button" data-v="0">9 Nov</button><button type="button" data-v="1">Nov 9</button><button type="button" data-v="2">09/11</button><button type="button" data-v="3">11/09</button><button type="button" data-v="4">2026-11-09</button></div>
+    </label>
+    <label class="field"><span data-i18n="weekday">Weekday</span>
+      <select id="weekdayStyle" hidden><option value="0">Mon</option><option value="1">Monday</option></select>
+      <div class="seg" data-for="weekdayStyle"><button type="button" data-v="0">Mon</button><button type="button" data-v="1">Monday</button></div>
+    </label>
+    <input id="toolbarOrder" type="hidden" value="5,4,1,0,2,3">
+    <div id="toolbarList">
+      <div class="line" data-id="5"><button type="button" class="nudge" data-dir="-1" aria-label="Move weekday up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move weekday down">↓</button><b data-i18n="tbWeekday">Weekday</b><span class="switch"><input type="checkbox" id="tbWeekday" checked><i></i></span></div>
+      <div class="line" data-id="4"><button type="button" class="nudge" data-dir="-1" aria-label="Move date up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move date down">↓</button><b data-i18n="tbDate">Date</b><span class="switch"><input type="checkbox" id="tbDate" checked><i></i></span></div>
+      <div class="line" data-id="1"><button type="button" class="nudge" data-dir="-1" aria-label="Move time up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move time down">↓</button><b data-i18n="tbTime">Time</b><span class="switch"><input type="checkbox" id="tbClock" checked><i></i></span></div>
+      <div class="line" data-id="0"><button type="button" class="nudge" data-dir="-1" aria-label="Move place up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move place down">↓</button><b data-i18n="tbPlace">Place</b><span class="switch"><input type="checkbox" id="tbPlace" checked><i></i></span></div>
+      <div class="line" data-id="2"><button type="button" class="nudge" data-dir="-1" aria-label="Move Wi-Fi up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move Wi-Fi down">↓</button><b data-i18n="tbWifi">Wi‑Fi</b><span class="switch"><input type="checkbox" id="tbWifi" checked><i></i></span></div>
+      <div class="line" data-id="3"><button type="button" class="nudge" data-dir="-1" aria-label="Move battery up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move battery down">↓</button><b data-i18n="tbBattery">Battery</b><span class="switch"><input type="checkbox" id="tbBatt" checked><i></i></span></div>
+    </div>
+    <div class="head later"><h2 data-i18n="tilesTitle">Weather tiles</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-tiles" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-tiles" hidden data-i18n="helpTiles">Wind, rain, pressure, air, and UV. Turn a tile off or move it. Up is toward the left. The tiles that stay share the row.</p>
+    <input id="metricOrder" type="hidden" value="0,1,2,3,4">
+    <div id="metricList">
+      <div class="line" data-id="0"><button type="button" class="nudge" data-dir="-1" aria-label="Move wind up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move wind down">↓</button><b data-i18n="wind">Wind</b><span class="switch"><input type="checkbox" id="mWind" checked><i></i></span></div>
+      <div class="line" data-id="1"><button type="button" class="nudge" data-dir="-1" aria-label="Move rain up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move rain down">↓</button><b data-i18n="rain">Rain</b><span class="switch"><input type="checkbox" id="mRain" checked><i></i></span></div>
+      <div class="line" data-id="2"><button type="button" class="nudge" data-dir="-1" aria-label="Move pressure up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move pressure down">↓</button><b data-i18n="press">Press</b><span class="switch"><input type="checkbox" id="mPress" checked><i></i></span></div>
+      <div class="line" data-id="3"><button type="button" class="nudge" data-dir="-1" aria-label="Move air up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move air down">↓</button><b data-i18n="air">Air</b><span class="switch"><input type="checkbox" id="mAir" checked><i></i></span></div>
+      <div class="line" data-id="4"><button type="button" class="nudge" data-dir="-1" aria-label="Move UV up">↑</button><button type="button" class="nudge" data-dir="1" aria-label="Move UV down">↓</button><b>UV</b><span class="switch"><input type="checkbox" id="mUv" checked><i></i></span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="lookTitle">Look</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-look" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-look" hidden data-i18n="helpLook">Themes, texture, uppercase titles, and dark paper. Dark paper swaps black and paper. The haiku can change every local day, or you can pin one. The poems stay in English. The sketch above matches the paper.</p>
+    <p class="hint" data-i18n="lookHint">The paper prints four pigments: black, paper, yellow, and red.</p>
+    <div class="preview upper" id="preview" aria-hidden="true">
+      <div class="bar" id="prevBar"><span data-bar="5" id="prevWd">Mon</span><span data-bar="4" id="prevDate">9 Nov</span><span data-bar="1" class="clk">13:40</span><span data-bar="0" data-i18n="yourPlace">Your place</span><span data-bar="2">▮▮▮</span><span data-bar="3" id="prevBatt">80%</span></div>
+      <div class="body">
+        <div class="hero" id="prevHero">
+          <div class="degrees" id="prevDegrees"><span class="temp">18° <small class="hi">24°</small> <small class="lo">12°</small></span></div>
+          <div class="sky" id="prevSky"><span class="ico">☀</span><span data-i18n="clearSkies">Clear skies</span></div>
+        </div>
+        <div class="forecast" id="prevForecast"></div>
+        <div class="row2"><div class="tile boxed" data-metric="mWind"><span data-i18n="wind">Wind</span><b>3.2</b></div><div class="tile boxed" data-metric="mRain"><span data-i18n="rain">Rain</span><b>0</b></div><div class="tile boxed" data-metric="mPress"><span data-i18n="press">Press</span><b>1016</b></div><div class="tile boxed" data-metric="mAir"><span data-i18n="air">Air</span><b>32</b></div><div class="tile boxed" data-metric="mUv">UV<b>2</b></div></div>
+        <div class="foot"><div class="cup" data-foot="0"><span data-i18n="brewTitle">Brew</span>3</div><div class="on" data-foot="1"><span data-i18n="blockRadio">Radio</span><span id="prevLive">JAZZ / ON</span></div><div class="poem" data-foot="2"><span>Haiku</span>the radio holds a note<br>jazz from a late radio</div></div>
+      </div>
+    </div>
+    <select id="themePreset" hidden>
+      <option value="0">Classic</option><option value="1">Sunset</option><option value="2">Ocean</option><option value="3">Custom pigments</option>
+      <option value="4">Marquee</option><option value="5">Chorus</option><option value="6">Brass</option><option value="7">Spotlight</option>
+    </select>
+    <div class="themes">
+      <button type="button" class="theme" data-theme="0"><strong data-i18n="classic">Classic</strong><span data-i18n="classicHint">Ink bar, gold clock</span></button>
+      <button type="button" class="theme" data-theme="1"><strong data-i18n="sunset">Sunset</strong><span data-i18n="sunsetHint">Red bar, gold clock</span></button>
+      <button type="button" class="theme" data-theme="2"><strong data-i18n="ocean">Ocean</strong><span data-i18n="oceanHint">Ink bar, gold high</span></button>
+      <button type="button" class="theme" data-theme="4"><strong data-i18n="marquee">Marquee</strong><span data-i18n="marqueeHint">Gold bar, red clock</span></button>
+      <button type="button" class="theme" data-theme="5"><strong data-i18n="chorus">Chorus</strong><span data-i18n="chorusHint">Red clock, red marks</span></button>
+      <button type="button" class="theme" data-theme="6"><strong data-i18n="brass">Brass</strong><span data-i18n="brassHint">Gold bar, black type</span></button>
+      <button type="button" class="theme" data-theme="7"><strong data-i18n="spotlight">Spotlight</strong><span data-i18n="spotlightHint">Red bar, gold frames</span></button>
+      <button type="button" class="theme" data-theme="3"><strong data-i18n="custom">Custom</strong><span data-i18n="customHint">Pick each pigment</span></button>
+    </div>
+    <div id="customColors">
+      <div class="pig-row"><span data-i18n="bar">Bar</span><input id="colorBar" type="hidden" value="0"><div class="pigs" data-for="colorBar"></div></div>
+      <div class="pig-row"><span data-i18n="accent">Accent</span><input id="colorAccent" type="hidden" value="2"><div class="pigs" data-for="colorAccent"></div></div>
+      <div class="pig-row"><span data-i18n="alert">Alert</span><input id="colorAlert" type="hidden" value="3"><div class="pigs" data-for="colorAlert"></div></div>
+      <div class="pig-row"><span data-i18n="high">High</span><input id="colorHi" type="hidden" value="3"><div class="pigs" data-for="colorHi"></div></div>
+      <div class="pig-row"><span data-i18n="low">Low</span><input id="colorLo" type="hidden" value="0"><div class="pigs" data-for="colorLo"></div></div>
+    </div>
+    <label class="field"><span data-i18n="texture">Texture</span>
+      <select id="brush" hidden><option value="0">Noise</option><option value="1">Dots</option><option value="2">Grid</option></select>
+      <div class="seg" data-for="brush"><button type="button" data-v="0" data-i18n="noise">Noise</button><button type="button" data-v="1" data-i18n="dots">Dots</button><button type="button" data-v="2" data-i18n="grid">Grid</button></div>
+    </label>
+    <label class="field"><span data-i18n="paper">Paper</span>
+      <select id="paper" hidden><option value="0">Automatic</option><option value="1">NOTE4</option><option value="2">NOTE4C</option></select>
+      <div class="seg" data-for="paper"><button type="button" data-v="0" data-i18n="paperAuto">Automatic</button><button type="button" data-v="1">NOTE4</button><button type="button" data-v="2">NOTE4C</button></div>
+    </label>
+    <label class="line"><b data-i18n="upperTitles">Uppercase box titles</b><span class="switch"><input type="checkbox" id="upperTitles" checked><i></i></span></label>
+    <label class="line"><b data-i18n="darkPaper">Dark paper</b><span class="switch"><input type="checkbox" id="darkMode"><i></i></span></label>
+    <div class="head later"><h2 data-i18n="borders">Borders</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-borders" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-borders" hidden data-i18n="helpBorders">A frame around one part of the paper. Tiles, brew, radio, and the haiku start framed. The forecast, the degrees, and the sky line start open.</p>
+    <div id="frameList">
+      <label class="line"><b data-i18n="borderForecast">Forecast</b><span class="switch"><input type="checkbox" id="bFrameForecast"><i></i></span></label>
+      <label class="line"><b data-i18n="borderDegrees">Degrees</b><span class="switch"><input type="checkbox" id="bFrameDegrees"><i></i></span></label>
+      <label class="line"><b data-i18n="borderSky">Sky line</b><span class="switch"><input type="checkbox" id="bFrameSky"><i></i></span></label>
+      <label class="line"><b data-i18n="borderTiles">Weather tiles</b><span class="switch"><input type="checkbox" id="bFrameTiles" checked><i></i></span></label>
+      <label class="line"><b data-i18n="borderBrew">Brew</b><span class="switch"><input type="checkbox" id="bFrameBrew" checked><i></i></span></label>
+      <label class="line"><b data-i18n="borderRadio">Radio</b><span class="switch"><input type="checkbox" id="bFrameRadio" checked><i></i></span></label>
+      <label class="line"><b data-i18n="borderHaiku">Haiku</b><span class="switch"><input type="checkbox" id="bFrameHaiku" checked><i></i></span></label>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="haikuLabel">Haiku</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-haiku" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-haiku" hidden data-i18n="helpHaiku">A new poem each local day, or pin one of the 30. The lines stay in English so they fit the box.</p>
+    <p class="hint" data-i18n="haikuHint">A new one each local day, or pick one. The poems stay in English.</p>
+    <select id="haikuPick" class="plain"></select>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="brewTitle">Brew</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-brew" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-brew" hidden data-i18n="helpBrew">The words on the brew box. It can name any drink. Tap the tag on the desk to count one. The number goes up and the paper refreshes.</p>
+    <p class="hint" data-i18n="brewHint">The words on the Brew tile. Could be any drink.</p>
+    <label class="field"><span data-i18n="tileText">Tile text</span><input id="nfc" type="text" maxlength="39" value="COFFEE"></label>
+  </section>
+
+  <section>
+    <div class="head"><h2 data-i18n="radioTitle">Radio</h2><button type="button" class="help" data-i18n-aria="helpLabel" aria-expanded="false" aria-controls="help-radio" aria-label="Help">?</button></div>
+    <p class="helptext" id="help-radio" hidden data-i18n="helpRadio">The stations the round button plays. One tap turns the radio on or off. A short press of Up or Down changes the volume. Hold one for about two seconds to change station.</p>
+    <p class="hint" data-i18n="radioHint">The stations the round button plays.</p>
+    <div id="stations"></div>
+    <button type="button" class="ghost" id="addStation" data-i18n="addStation">Add a station</button>
+  </section>
+  </div>
+</main>
+<div class="savebar">
+  <p id="saveNote" class="note" hidden></p>
+  <button type="button" class="action" id="deskBtn" data-i18n="saveChanges">Save changes</button>
+  <p class="ver">v1.0</p>
+</div>
+<script>
+(function () {
+  const canvas = document.createElement('canvas');
+  canvas.width = canvas.height = 64;
+  const pen = canvas.getContext('2d');
+  pen.font = '54px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  pen.textAlign = 'center';
+  pen.textBaseline = 'middle';
+  pen.fillText('🎷', 32, 36);
+  const icon = document.getElementById('favicon');
+  if (icon) icon.href = canvas.toDataURL('image/png');
+})();
+const status = (t, ok) => { const el = document.getElementById('status'); el.textContent = t; el.className = 'status' + (ok ? ' ok' : ok === false ? ' err' : ''); };
+function showSave(message, ok) {
+  status(message, ok);
+  const note = document.getElementById('saveNote');
+  note.hidden = !message;
+  note.textContent = message || '';
+  note.className = 'note' + (ok ? ' ok' : ok === false ? ' err' : '');
+}
+let token = localStorage.getItem('jazztrixToken') || '';
+const hdr = () => token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+async function api(path, opts = {}) {
+  const r = await fetch(path, opts);
+  const j = r.headers.get('content-type')?.includes('json') ? await r.json() : null;
+  if (!r.ok) {
+    const err = new Error(j?.error || r.statusText);
+    err.status = r.status;
+    throw err;
+  }
+  return j;
+}
+const parseOrder = (s) => String(s || '').split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+const visBits = (ids, checks) => ids.reduce((m, id, i) => m | (document.getElementById(checks[i]).checked ? (1 << id) : 0), 0);
+const INK = ['#1b140f', '#f3efe4', '#e2b340', '#d4533a'];
+function gate() {
+  document.body.classList.toggle('locked', !token);
+  if (typeof applyLang === 'function') applyLang();
+}
+function paintSegs() {
+  document.querySelectorAll('.seg').forEach(seg => {
+    const v = document.getElementById(seg.dataset.for).value;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  });
+}
+function paintOrder(listId, inputId) {
+  const list = document.getElementById(listId);
+  parseOrder(document.getElementById(inputId).value).forEach(id => {
+    const el = list.querySelector('[data-id="' + id + '"]');
+    if (el) list.appendChild(el);
+  });
+}
+function writeOrder(list) {
+  const ids = { toolbarList: 'toolbarOrder', metricList: 'metricOrder', footList: 'footOrder' };
+  const input = document.getElementById(ids[list.id]);
+  input.value = [...list.querySelectorAll('.line')].map(el => el.dataset.id).join(',');
+}
+const THEMES = {
+  '0': { bar: 0, clock: 2, frame: 0, hi: 3, accent: 2, alert: 3 },
+  '1': { bar: 3, clock: 2, frame: 3, hi: 3, accent: 2, alert: 3 },
+  '2': { bar: 0, clock: 2, frame: 0, hi: 2, accent: 2, alert: 3 },
+  '4': { bar: 2, clock: 3, frame: 3, hi: 3, accent: 2, alert: 3 },
+  '5': { bar: 0, clock: 3, frame: 3, hi: 3, accent: 3, alert: 3 },
+  '6': { bar: 2, clock: 0, frame: 2, hi: 3, accent: 2, alert: 3 },
+  '7': { bar: 3, clock: 2, frame: 2, hi: 2, accent: 2, alert: 3 }
+};
+function paintTheme() {
+  const theme = document.getElementById('themePreset').value;
+  document.querySelectorAll('.theme').forEach(b => b.classList.toggle('on', b.dataset.theme === theme));
+  document.getElementById('customColors').classList.toggle('off', theme !== '3');
+  document.querySelectorAll('.pigs').forEach(group => {
+    const v = document.getElementById(group.dataset.for).value;
+    group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  });
+  const spec = theme === '3' ? {
+    bar: +document.getElementById('colorBar').value,
+    clock: +document.getElementById('colorAccent').value,
+    frame: +document.getElementById('colorAlert').value,
+    hi: +document.getElementById('colorHi').value,
+    accent: +document.getElementById('colorAccent').value,
+    alert: +document.getElementById('colorAlert').value
+  } : (THEMES[theme] || THEMES['0']);
+  const dark = document.getElementById('darkMode').checked;
+  const paper = dark ? INK[0] : INK[1];
+  const ink = dark ? INK[1] : INK[0];
+  const preview = document.getElementById('preview');
+  preview.style.background = paper;
+  preview.style.color = ink;
+  const bar = INK[spec.bar] || INK[0];
+  const barEl = preview.querySelector('.bar');
+  barEl.style.background = bar === paper ? ink : bar;
+  const barInk = (spec.bar === 1 || spec.bar === 2) ? INK[0] : INK[1];
+  barEl.style.color = barInk === barEl.style.background ? (dark ? INK[0] : INK[1]) : barInk;
+  const clk = preview.querySelector('.clk');
+  clk.style.color = INK[spec.clock] === barEl.style.background ? barEl.style.color : INK[spec.clock];
+  const when = preview.querySelector('.when');
+  if (when) when.style.color = clk.style.color;
+  preview.querySelector('.temp').style.color = ink;
+  preview.querySelector('.hi').style.color = INK[spec.hi] === paper ? ink : INK[spec.hi];
+  const lo = preview.querySelector('.lo');
+  if (lo) lo.style.color = ink;
+  const frameInk = INK[spec.frame];
+  ['prevDegrees', 'prevSky'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.borderColor = el.classList.contains('boxed') ? frameInk : 'transparent';
+    el.style.color = ink;
+  });
+  const forecast = preview.querySelector('.forecast');
+  if (forecast) {
+    forecast.style.borderColor = forecast.classList.contains('boxed') ? frameInk : 'transparent';
+    forecast.style.color = ink;
+    const temps = [16, 17, 18, 18, 19, 20, 21, 20, 19, 18, 17, 16];
+    forecast.querySelectorAll('i').forEach((bar, i) => {
+      const t = temps[i] || 16;
+      bar.style.background = t >= 20 ? INK[3] : t >= 18 ? INK[2] : (dark ? INK[1] : INK[0]);
+    });
+    const stroke = forecast.querySelector('polyline');
+    const area = forecast.querySelector('polygon');
+    if (stroke) stroke.setAttribute('stroke', ink);
+    if (area) area.setAttribute('fill', INK[2]);
+    forecast.querySelectorAll('circle').forEach(dot => dot.setAttribute('fill', ink));
+  }
+  preview.querySelectorAll('.tile').forEach(tile => {
+    const boxed = tile.classList.contains('boxed');
+    tile.style.borderColor = boxed ? frameInk : 'transparent';
+    tile.style.color = ink;
+    tile.style.background = boxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+  });
+  const cup = preview.querySelector('.cup');
+  const alert = INK[spec.alert];
+  const cupBoxed = cup.classList.contains('boxed');
+  cup.style.background = cupBoxed ? alert : 'transparent';
+  cup.style.color = cupBoxed ? (alert === INK[1] || alert === INK[2] ? INK[0] : INK[1]) : ink;
+  const on = preview.querySelector('.on');
+  const onBoxed = on.classList.contains('boxed');
+  on.style.background = onBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+  on.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
+  on.style.border = onBoxed ? '1px solid ' + frameInk : '1px solid transparent';
+  const poem = preview.querySelector('.poem');
+  if (poem) {
+    const poemBoxed = poem.classList.contains('boxed');
+    poem.style.background = poemBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+    poem.style.color = ink;
+    poem.style.border = poemBoxed ? '1px solid ' + frameInk : '1px solid transparent';
+    const poemTitle = poem.querySelector('span');
+    if (poemTitle)
+      poemTitle.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
+  }
+}
+const RADIO_MAX = 8;
+function stationRow(name, url) {
+  const el = document.createElement('article');
+  el.className = 'station';
+  el.innerHTML =
+    '<div class="station-top"><button type="button" class="nudge" data-dir="-1" aria-label="Move station up">↑</button>' +
+    '<button type="button" class="nudge" data-dir="1" aria-label="Move station down">↓</button>' +
+    '<b class="idx"></b><button type="button" class="drop" data-i18n="remove">Remove</button></div>' +
+    '<label class="field"><span data-i18n="name">Name</span><input class="st-name" type="text" maxlength="23"></label>' +
+    '<label class="field"><span data-i18n="address">Address</span><textarea class="st-url" maxlength="127" rows="2" placeholder="http://"></textarea></label>';
+  el.querySelector('.st-name').value = name || '';
+  el.querySelector('.st-url').value = url || '';
+  return el;
+}
+function paintStations() {
+  const rows = document.querySelectorAll('#stations .station');
+  rows.forEach((el, i) => { el.querySelector('.idx').textContent = 'Station ' + (i + 1); });
+  document.getElementById('addStation').disabled = rows.length >= RADIO_MAX;
+}
+function setStations(rows) {
+  const list = document.getElementById('stations');
+  const defaults = [
+    { name: 'JAZZ', url: 'http://ice2.somafm.com/secretagent-128-mp3' },
+    { name: 'Lofi', url: 'http://ice2.somafm.com/groovesalad-128-mp3' }
+  ];
+  list.replaceChildren();
+  (rows === undefined ? defaults : rows).slice(0, RADIO_MAX).forEach(r => list.appendChild(stationRow(r.name, r.url)));
+  paintStations();
+}
+function readStations() {
+  return [...document.querySelectorAll('#stations .station')].map(el => ({
+    name: el.querySelector('.st-name').value.trim(),
+    url: el.querySelector('.st-url').value.trim()
+  })).filter(s => s.url).slice(0, RADIO_MAX);
+}
+function sampleWhen() {
+  const tz = document.getElementById('timezone').value;
+  const base = {};
+  if (tz) base.timeZone = tz;
+  const clock24 = document.getElementById('clock24').value === '1';
+  const dateFmt = document.getElementById('dateFormat').value;
+  const longDay = document.getElementById('weekdayStyle').value === '1';
+  let wd = 'Mon', dt = '9 Nov', tm = clock24 ? '13:40' : '1:40 PM';
+  try {
+    const now = new Date();
+    const code = document.getElementById('language').value;
+    const intl = code === 'zh' ? 'zh-CN' : (code || 'en-GB');
+    const piece = (opts) => new Intl.DateTimeFormat(intl, Object.assign({}, base, opts)).format(now).replace(/\.$/, '');
+    wd = piece({ weekday: longDay ? 'long' : 'short' });
+    const day = piece({ day: 'numeric' });
+    const day2 = piece({ day: '2-digit' });
+    const mon = piece({ month: 'short' });
+    const mon2 = piece({ month: '2-digit' });
+    const year = piece({ year: 'numeric' });
+    dt = dateFmt === '1' ? mon + ' ' + day
+      : dateFmt === '2' ? day2 + '/' + mon2
+      : dateFmt === '3' ? mon2 + '/' + day2
+      : dateFmt === '4' ? year + '-' + mon2 + '-' + day2
+      : day + ' ' + mon;
+    tm = piece({ hour: '2-digit', minute: '2-digit', hourCycle: clock24 ? 'h23' : 'h12' });
+  } catch (e) {}
+  const wdEl = document.getElementById('prevWd');
+  const dtEl = document.getElementById('prevDate');
+  const tmEl = document.querySelector('#preview .clk');
+  if (wdEl) wdEl.textContent = wd;
+  if (dtEl) dtEl.textContent = dt;
+  if (tmEl) tmEl.textContent = tm;
+  const checks = { 0: 'tbPlace', 1: 'tbClock', 2: 'tbWifi', 3: 'tbBatt', 4: 'tbDate', 5: 'tbWeekday' };
+  const bar = document.getElementById('prevBar');
+  parseOrder(document.getElementById('toolbarOrder').value).forEach(id => {
+    const el = bar.querySelector('[data-bar="' + id + '"]');
+    if (!el) return;
+    bar.appendChild(el);
+    el.hidden = !document.getElementById(checks[id]).checked;
+  });
+}
+function paintPaper() {
+  const hours = +document.getElementById('forecastHours').value || 6;
+  const temps = [15, 17, 18, 19, 20, 21, 20, 18, 17, 16, 15, 14].slice(0, hours);
+  const box = document.getElementById('prevForecast');
+  box.replaceChildren();
+  const bars = document.getElementById('forecastStyle').value === '1';
+  box.classList.toggle('graph', !bars);
+  if (bars) {
+    temps.forEach((t, i) => {
+      const col = document.createElement('div');
+      const deg = document.createElement('b');
+      deg.textContent = t + '°';
+      const bar = document.createElement('i');
+      bar.style.height = (6 + (t - 16) * 3) + 'px';
+      const hour = document.createElement('span');
+      hour.textContent = String((14 + i) % 24).padStart(2, '0');
+      col.append(deg, bar, hour);
+      box.appendChild(col);
+    });
+  } else {
+    const lo = Math.min(...temps);
+    const hi = Math.max(...temps);
+    const pad = (hi - lo) < 2 ? 0.5 : 1;
+    let scaleLo = Math.floor(lo - pad);
+    let scaleHi = Math.ceil(hi + pad);
+    if (scaleHi - scaleLo < 4) {
+      const mid = (scaleHi + scaleLo) / 2;
+      scaleLo = Math.floor(mid - 2);
+      scaleHi = Math.ceil(mid + 2);
+    }
+    let step = 1;
+    scaleLo = Math.floor(scaleLo);
+    scaleHi = Math.ceil(scaleHi);
+    if (scaleHi <= scaleLo) scaleHi = scaleLo + 1;
+    while (true) {
+      const ticks = (scaleHi - scaleLo) / step + 1;
+      if (ticks <= 4) break;
+      step = step === 1 ? 2 : step === 2 ? 5 : step + 5;
+      scaleLo = Math.floor(scaleLo / step) * step;
+      scaleHi = Math.ceil(scaleHi / step) * step;
+      if (scaleHi <= scaleLo) scaleHi = scaleLo + step;
+      if (step > 40) break;
+    }
+    const span = scaleHi - scaleLo;
+    const axis = document.createElement('div');
+    axis.className = 'axis';
+    for (let deg = scaleHi; deg >= scaleLo; deg -= step) {
+      const mark = document.createElement('b');
+      mark.textContent = deg + '°';
+      axis.appendChild(mark);
+    }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 40');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    const pts = temps.map((t, i) => {
+      const x = temps.length === 1 ? 50 : (i / (temps.length - 1)) * 100;
+      const u = Math.max(0, Math.min(1, (t - scaleLo) / span));
+      const y = 3 + (1 - u) * 34;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    area.setAttribute('points', '0,40 ' + pts.join(' ') + ' 100,40');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    line.setAttribute('points', pts.join(' '));
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke-width', '1.6');
+    line.setAttribute('stroke-linejoin', 'round');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.append(area, line);
+    pts.forEach(p => {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const xy = p.split(',');
+      dot.setAttribute('cx', xy[0]);
+      dot.setAttribute('cy', xy[1]);
+      dot.setAttribute('r', '2.4');
+      svg.appendChild(dot);
+    });
+    const hoursRow = document.createElement('div');
+    hoursRow.className = 'hours';
+    temps.forEach((_, i) => {
+      const hour = document.createElement('span');
+      hour.textContent = String((14 + i) % 24);
+      hoursRow.appendChild(hour);
+    });
+    box.append(axis, svg, hoursRow);
+  }
+  box.hidden = !document.getElementById('bForecast').checked;
+  const frameOn = (id) => document.getElementById(id).checked;
+  box.classList.toggle('boxed', frameOn('bFrameForecast'));
+  document.getElementById('prevDegrees').classList.toggle('boxed', frameOn('bFrameDegrees'));
+  document.getElementById('prevSky').classList.toggle('boxed', frameOn('bFrameSky'));
+  document.getElementById('prevHero').hidden = !document.getElementById('bTemp').checked;
+  document.querySelectorAll('#preview .tile').forEach(tile => tile.classList.toggle('boxed', frameOn('bFrameTiles')));
+  document.querySelector('#preview .cup').classList.toggle('boxed', frameOn('bFrameBrew'));
+  document.querySelector('#preview .on').classList.toggle('boxed', frameOn('bFrameRadio'));
+  document.querySelector('#preview .poem').classList.toggle('boxed', frameOn('bFrameHaiku'));
+  document.querySelectorAll('#preview .tile').forEach(tile => {
+    tile.hidden = !document.getElementById(tile.dataset.metric).checked;
+  });
+  const foot = document.querySelector('#preview .foot');
+  parseOrder(document.getElementById('footOrder').value).forEach(id => {
+    const el = foot.querySelector('[data-foot="' + id + '"]');
+    if (el) foot.appendChild(el);
+  });
+  document.querySelector('#preview .cup').hidden = !document.getElementById('bCoffee').checked;
+  document.querySelector('#preview .on').hidden = !document.getElementById('bRadio').checked;
+  document.querySelector('#preview .poem').hidden = !document.getElementById('bHaiku').checked;
+}
+const HAIKU = [
+  ["the radio holds a note", "jazz from a late radio"],
+  ["soft rain on the paper", "rain finds a thin wire"],
+  ["a cold cup by the lamp", "empty cup waiting dawn"],
+  ["paper moon in the gold", "moon holds a pale gold"],
+  ["the quiet room of rain", "a horn across the room"],
+  ["old vinyl turns slowly", "the paper keeps a song"],
+  ["a red mark on the page", "the gold edge on paper"],
+  ["blue hour keeps a horn", "trumpet under blue air"],
+  ["black coffee on monday", "soft static under lamp"],
+  ["a horn beyond the room", "small rain on the wire"],
+  ["the quiet horn tonight", "the late brass in room"],
+  ["gold light on the page", "the slow turn of night"],
+  ["a cold cup beside lamp", "steam leaves the paper"],
+  ["a horn across the hall", "echo waits in the room"],
+  ["gold dust on the paper", "red ink under the song"],
+  ["low radio through rain", "paper hears a low horn"],
+  ["saturday rain and jazz", "small club going still"],
+  ["the trumpet in the fog", "soft fog on brass keys"],
+  ["vinyl dust in sunlight", "a needle finds the cut"],
+  ["two taps and the radio", "it opens the slow song"],
+  ["lamps keep a late time", "a taxi waits for brass"],
+  ["one leaf on the sleeve", "autumn in the speakers"],
+  ["low bass on the stairs", "each step keeps a beat"],
+  ["tea steam on the paper", "the kettle clicks once"],
+  ["snow on a station roof", "the train in slow time"],
+  ["the solo ends too soon", "clapping like the rain"],
+  ["blue notes on a monday", "work can wait for jazz"],
+  ["a harbor wind and bell", "the ships answer minor"],
+  ["the last bus and a sax", "both are a little late"],
+  ["shut the lid then hear", "tomorrow keeps a chair"]
+];
+function dailyHaiku() {
+  const now = new Date();
+  let year = now.getFullYear() - 1900;
+  let yday = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 1)) / 86400000);
+  const tz = document.getElementById('timezone').value;
+  if (tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
+      const y = +parts.find(p => p.type === 'year').value;
+      const m = +parts.find(p => p.type === 'month').value;
+      const d = +parts.find(p => p.type === 'day').value;
+      year = y - 1900;
+      yday = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000);
+    } catch (e) {}
+  }
+  let h = (year * 366 + yday) >>> 0;
+  h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+  return (h >>> 16) % HAIKU.length;
+}
+function fillHaikuSelect() {
+  const sel = document.getElementById('haikuPick');
+  const cur = sel.dataset.want || sel.value || '0';
+  sel.replaceChildren();
+  const daily = document.createElement('option');
+  daily.value = '0';
+  daily.textContent = t('haikuDaily');
+  sel.appendChild(daily);
+  HAIKU.forEach((lines, i) => {
+    const o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = lines[0];
+    sel.appendChild(o);
+  });
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : '0';
+  delete sel.dataset.want;
+}
+function paintHaiku() {
+  const chosen = +document.getElementById('haikuPick').value || 0;
+  const i = chosen >= 1 && chosen <= HAIKU.length ? chosen - 1 : dailyHaiku();
+  const poem = document.querySelector('#preview .poem');
+  if (poem) {
+    const title = poem.querySelector('span');
+    const lines = HAIKU[i].join('<br>');
+    if (title) {
+      title.textContent = 'Haiku';
+      while (title.nextSibling)
+        title.nextSibling.remove();
+      title.insertAdjacentHTML('afterend', lines);
+    } else
+      poem.innerHTML = '<span>Haiku</span>' + lines;
+  }
+}
+function paint() {
+  applyLang();
+  fillHaikuSelect();
+  document.getElementById('preview').classList.toggle('upper', document.getElementById('upperTitles').checked);
+  paintSegs(); paintOrder('toolbarList', 'toolbarOrder'); paintOrder('metricList', 'metricOrder'); paintOrder('footList', 'footOrder'); paintPaper(); paintHaiku(); paintTheme();
+  sampleWhen();
+}
+document.querySelectorAll('.seg').forEach(seg => {
+  seg.addEventListener('click', ev => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    document.getElementById(seg.dataset.for).value = b.dataset.v;
+    paint();
+  });
+});
+document.querySelectorAll('.theme').forEach(b => b.onclick = () => { document.getElementById('themePreset').value = b.dataset.theme; paint(); });
+document.querySelectorAll('.pigs').forEach(group => {
+  for (let v = 0; v < 4; v++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch k' + v;
+    b.dataset.v = String(v);
+    b.setAttribute('aria-label', ['Black', 'Paper', 'Gold', 'Red'][v]);
+    b.onclick = () => { document.getElementById(group.dataset.for).value = String(v); paint(); };
+    group.appendChild(b);
+  }
+});
+document.getElementById('darkMode').addEventListener('change', paint);
+document.getElementById('upperTitles').addEventListener('change', paint);
+document.getElementById('frameList').addEventListener('change', paint);
+document.getElementById('haikuPick').addEventListener('change', paint);
+document.getElementById('toolbarList').addEventListener('change', paint);
+document.getElementById('metricList').addEventListener('change', paint);
+document.getElementById('footList').addEventListener('change', paint);
+document.querySelectorAll('button.help').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const panel = document.getElementById(btn.getAttribute('aria-controls'));
+    const open = panel.hidden;
+    document.querySelectorAll('.helptext').forEach(p => { p.hidden = true; });
+    document.querySelectorAll('button.help').forEach(b => {
+      b.classList.remove('on');
+      b.setAttribute('aria-expanded', 'false');
+    });
+    if (open) {
+      panel.hidden = false;
+      btn.classList.add('on');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  });
+});
+document.querySelector('.blocks').addEventListener('change', paint);
+document.getElementById('timezone').addEventListener('change', paint);
+document.getElementById('stations').addEventListener('click', ev => {
+  const list = document.getElementById('stations');
+  const row = ev.target.closest('.station');
+  if (!row) return;
+  if (ev.target.closest('.drop')) {
+    row.remove();
+    paintStations();
+    return;
+  }
+  const b = ev.target.closest('.nudge');
+  if (!b) return;
+  const dir = +b.dataset.dir;
+  const sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (!sib) return;
+  if (dir < 0) list.insertBefore(row, sib);
+  else list.insertBefore(sib, row);
+  paintStations();
+});
+document.getElementById('addStation').onclick = () => {
+  const list = document.getElementById('stations');
+  if (list.children.length >= RADIO_MAX) return;
+  const row = stationRow('', '');
+  list.appendChild(row);
+  paintStations();
+  row.querySelector('.st-name').focus();
+};
+document.querySelectorAll('#toolbarList, #metricList, #footList').forEach(list => {
+  list.addEventListener('click', ev => {
+    const b = ev.target.closest('.nudge');
+    if (!b) return;
+    const line = b.closest('.line');
+    const dir = +b.dataset.dir;
+    const sib = dir < 0 ? line.previousElementSibling : line.nextElementSibling;
+    if (!sib) return;
+    if (dir < 0) list.insertBefore(line, sib);
+    else list.insertBefore(sib, line);
+    writeOrder(list);
+    paint();
+  });
+});
+document.getElementById('pairBtn').onclick = async () => {
+  try {
+    const j = await api('/api/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: document.getElementById('pair').value.trim() }) });
+    token = j.token; localStorage.setItem('jazztrixToken', token); gate(); status(t('paired'), true); await load();
+  } catch (e) { status(e.message, false); }
+};
+async function loadZones(current) {
+  const sel = document.getElementById('timezone');
+  try {
+    const zones = await api('/api/timezones', { headers: hdr() });
+    const cur = current || sel.value;
+    sel.innerHTML = '';
+    (zones || []).forEach(z => {
+      const o = document.createElement('option');
+      o.value = z.name;
+      o.textContent = z.label || z.name;
+      sel.appendChild(o);
+    });
+    if (cur && ![...sel.options].some(o => o.value === cur)) {
+      const o = document.createElement('option');
+      o.value = cur;
+      o.textContent = cur;
+      sel.appendChild(o);
+    }
+    if (cur) sel.value = cur;
+  } catch (e) {
+    if (current && !sel.options.length) {
+      const o = document.createElement('option');
+      o.value = current;
+      o.textContent = current;
+      sel.appendChild(o);
+    }
+  }
+}
+async function load() {
+  if (!token) return;
+  try {
+    const cfg = await api('/api/config', { headers: hdr() });
+    if (cfg.locale && [...document.getElementById('language').options].some(o => o.value === cfg.locale)) {
+      document.getElementById('language').value = cfg.locale;
+      localStorage.setItem('jazztrixLang', cfg.locale);
+    }
+    document.getElementById('units').value = cfg.units?.[0] === 'F' ? 'F' : 'C';
+    document.getElementById('clock24').value = cfg.clock24 ? '1' : '0';
+    await loadZones(cfg.timezone || '');
+    if (cfg.location_ready && cfg.location)
+      document.getElementById('place').value = cfg.location;
+    try {
+      const st = await api('/api/status', { headers: hdr() });
+      if (st?.wifi?.ssid) document.getElementById('wifiSsid').value = st.wifi.ssid;
+    } catch (e) {}
+    const d = await api('/api/desk', { headers: hdr() });
+    document.getElementById('nfc').value = d.nfc_label || '';
+    document.getElementById('brush').value = d.brush ?? 0;
+    document.getElementById('paper').value = d.paper ?? 0;
+    document.getElementById('darkMode').checked = !!d.dark_mode;
+    document.getElementById('unitSuffix').checked = d.unit_suffix !== false;
+    document.getElementById('upperTitles').checked = d.upper_titles !== false;
+    document.getElementById('windUnit').value = d.wind_unit ?? 0;
+    let fh = String(d.forecast_hours);
+    if (fh === '4') fh = '6';
+    document.getElementById('forecastHours').value = ['3','6','9','12'].includes(fh) ? fh : '6';
+    document.getElementById('forecastStyle').value = String(d.forecast_style) === '1' ? '1' : '0';
+    document.getElementById('themePreset').value = d.theme_preset ?? 0;
+    ['Bar','Accent','Alert','Hi','Lo'].forEach(k => {
+      const el = document.getElementById('color' + k);
+      if (el) el.value = d['color_' + k.toLowerCase()] ?? el.value;
+    });
+    if (d.toolbar_order) document.getElementById('toolbarOrder').value = d.toolbar_order.join(',');
+    if (d.metric_order) document.getElementById('metricOrder').value = d.metric_order.join(',');
+    if (d.foot_order) document.getElementById('footOrder').value = d.foot_order.join(',');
+    document.getElementById('dateFormat').value = String(d.date_format ?? 0);
+    document.getElementById('weekdayStyle').value = String(d.weekday_style ?? 0);
+    document.getElementById('tbPlace').checked = !!(d.toolbar_visible & 1);
+    document.getElementById('tbClock').checked = !!(d.toolbar_visible & 2);
+    document.getElementById('tbWifi').checked = !!(d.toolbar_visible & 4);
+    document.getElementById('tbBatt').checked = !!(d.toolbar_visible & 8);
+    document.getElementById('tbDate').checked = !!(d.toolbar_visible & 16);
+    document.getElementById('tbWeekday').checked = !!(d.toolbar_visible & 32);
+    document.getElementById('mWind').checked = !!(d.metric_visible & 1);
+    document.getElementById('mRain').checked = !!(d.metric_visible & 2);
+    document.getElementById('mPress').checked = !!(d.metric_visible & 4);
+    document.getElementById('mAir').checked = !!(d.metric_visible & 8);
+    document.getElementById('mUv').checked = !!(d.metric_visible & 16);
+    document.getElementById('bTemp').checked = !!(d.block_visible & 1);
+    document.getElementById('bForecast').checked = !!(d.block_visible & 2);
+    document.getElementById('bCoffee').checked = !!(d.block_visible & 4);
+    document.getElementById('bRadio').checked = !!(d.block_visible & 8);
+    document.getElementById('bHaiku').checked = !!(d.block_visible & 16);
+    const frames = d.borders === undefined || d.borders === null ? 0x78 : d.borders;
+    document.getElementById('bFrameForecast').checked = !!(frames & 1);
+    document.getElementById('bFrameDegrees').checked = !!(frames & 2);
+    document.getElementById('bFrameSky').checked = !!(frames & 4);
+    document.getElementById('bFrameTiles').checked = !!(frames & 8);
+    document.getElementById('bFrameBrew').checked = !!(frames & 16);
+    document.getElementById('bFrameRadio').checked = !!(frames & 32);
+    document.getElementById('bFrameHaiku').checked = !!(frames & 64);
+    document.getElementById('haikuPick').dataset.want = d.haiku_pick > 0 && d.haiku_pick <= 30 ? String(d.haiku_pick) : '0';
+    setStations(d.radios || []);
+    paint();
+    status(t('loaded'), true);
+  } catch (e) {
+    if (e.status === 401) {
+      token = '';
+      localStorage.removeItem('jazztrixToken');
+      gate();
+    }
+    status(e.message, false);
+  }
+}
+document.getElementById('wifiBtn').onclick = async () => {
+  try {
+    await api('/api/wifi', { method: 'POST', headers: hdr(), body: JSON.stringify({
+      ssid: document.getElementById('wifiSsid').value, password: document.getElementById('wifiPass').value }) });
+    status(t('wifiSaved'), true);
+  } catch (e) { status(e.message, false); }
+};
+document.getElementById('searchBtn').onclick = async () => {
+  try {
+  const q = document.getElementById('place').value.trim();
+    if (!q) return status(t('typePlace'), false);
+  const j = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=8').then(r => r.json());
+  const sel = document.getElementById('places'); sel.innerHTML = '';
+  (j.results || []).forEach(p => {
+    const o = document.createElement('option');
+    o.value = JSON.stringify({ name: p.name, latitude: p.latitude, longitude: p.longitude, timezone: p.timezone });
+      o.textContent = p.name + (p.admin1 ? ', ' + p.admin1 : '') + (p.country ? ', ' + p.country : '');
+    sel.appendChild(o);
+  });
+    if (!sel.options.length) status(t('noPlaces'), false);
+    else { sel.selectedIndex = 0; status(t('placesCount').replace('%n', sel.options.length), true); }
+  } catch (e) { status(t('searchNeeds'), false); }
+};
+document.getElementById('locBtn').onclick = async () => {
+  try {
+  const sel = document.getElementById('places');
+    if (!sel.value) return status(t('pickPlace'), false);
+  const p = JSON.parse(sel.value);
+  const cfg = await api('/api/config', { headers: hdr() });
+  cfg.location = p.name; cfg.latitude = p.latitude; cfg.longitude = p.longitude; cfg.location_ready = true;
+    if (p.timezone) {
+      cfg.timezone = p.timezone;
+      const sel = document.getElementById('timezone');
+      if (![...sel.options].some(o => o.value === p.timezone)) {
+        const o = document.createElement('option');
+        o.value = p.timezone;
+        o.textContent = p.timezone;
+        sel.appendChild(o);
+      }
+      sel.value = p.timezone;
+    }
+  cfg.units = document.getElementById('units').value;
+  cfg.clock24 = document.getElementById('clock24').value === '1';
+  await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
+    paint();
+    status(t('placeSaved').replace('%s', p.name), true);
+  } catch (e) { status(e.message, false); }
+};
+document.getElementById('deskBtn').onclick = async () => {
+  const btn = document.getElementById('deskBtn');
+  btn.disabled = true;
+  showSave(t('saving'), null);
+  try {
+    const cfg = await api('/api/config', { headers: hdr() });
+    cfg.units = document.getElementById('units').value;
+    cfg.clock24 = document.getElementById('clock24').value === '1';
+    const zone = document.getElementById('timezone').value;
+    if (zone) cfg.timezone = zone;
+    cfg.locale = document.getElementById('language').value || 'en';
+    localStorage.setItem('jazztrixLang', cfg.locale);
+    await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
+    const body = {
+      nfc_label: document.getElementById('nfc').value,
+      brush: +document.getElementById('brush').value,
+      paper: +document.getElementById('paper').value,
+      dark_mode: document.getElementById('darkMode').checked,
+      unit_suffix: document.getElementById('unitSuffix').checked,
+      upper_titles: document.getElementById('upperTitles').checked,
+      wind_unit: +document.getElementById('windUnit').value,
+      forecast_hours: +document.getElementById('forecastHours').value,
+      forecast_style: +document.getElementById('forecastStyle').value,
+      borders: (document.getElementById('bFrameForecast').checked ? 1 : 0) |
+        (document.getElementById('bFrameDegrees').checked ? 2 : 0) |
+        (document.getElementById('bFrameSky').checked ? 4 : 0) |
+        (document.getElementById('bFrameTiles').checked ? 8 : 0) |
+        (document.getElementById('bFrameBrew').checked ? 16 : 0) |
+        (document.getElementById('bFrameRadio').checked ? 32 : 0) |
+        (document.getElementById('bFrameHaiku').checked ? 64 : 0),
+      haiku_pick: +document.getElementById('haikuPick').value || 0,
+      theme_preset: +document.getElementById('themePreset').value,
+      color_bar: +document.getElementById('colorBar').value,
+      color_accent: +document.getElementById('colorAccent').value,
+      color_alert: +document.getElementById('colorAlert').value,
+      color_hi: +document.getElementById('colorHi').value,
+      color_lo: +document.getElementById('colorLo').value,
+      toolbar_order: parseOrder(document.getElementById('toolbarOrder').value),
+      metric_order: parseOrder(document.getElementById('metricOrder').value),
+      foot_order: parseOrder(document.getElementById('footOrder').value),
+      date_format: +document.getElementById('dateFormat').value,
+      weekday_style: +document.getElementById('weekdayStyle').value,
+      toolbar_visible: visBits([0,1,2,3,4,5], ['tbPlace','tbClock','tbWifi','tbBatt','tbDate','tbWeekday']),
+      metric_visible: visBits([0,1,2,3,4], ['mWind','mRain','mPress','mAir','mUv']),
+      block_visible: (document.getElementById('bTemp').checked ? 1 : 0) |
+        (document.getElementById('bForecast').checked ? 2 : 0) |
+        (document.getElementById('bCoffee').checked ? 4 : 0) |
+        (document.getElementById('bRadio').checked ? 8 : 0) |
+        (document.getElementById('bHaiku').checked ? 16 : 0),
+      radios: readStations()
+    };
+    await api('/api/desk', { method: 'PUT', headers: hdr(), body: JSON.stringify(body) });
+    showSave(t('savedPaper'), true);
+  } catch (e) { showSave(e.message, false); }
+  finally { btn.disabled = false; }
+};
+const I18N = {
+  en: {
+    blurb: 'A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.',
+    setupTitle: 'Setup',
+    settingsTitle: 'Settings',
+    onWord: 'ON',
+    helpLabel: 'Help',
+    helpLanguage: 'The paper and this page follow this language.',
+    helpPair: 'Double-tap the round button. The paper shows six digits for about five minutes. Join JazzTrix-Setup and type the code here.',
+    helpWifi: 'The home network. After you save, the password stays on the device. This page does not keep it.',
+    helpWeather: 'Live weather for the place you pick. Hours ahead is the forecast: 3, 6, 9, or 12 hours. It draws as a graph, with the hours along the bottom and the temperatures on the left. Bars are the other choice. Wind can be m/s, km/h, or mph.',
+    helpPaper: 'The large temperature and the forecast. Turn either one off. The rest of the paper stays.',
+    helpBottom: 'Brew, radio, and the daily haiku. Turn a box off or move it. Up is toward the left, and the boxes that stay share the width. Tap the tag to add one to the brew count.',
+    helpTop: 'Weekday, date, time, place, Wi-Fi, and battery. Up moves an item toward the left. The clock follows the time zone. Choosing a place fills the zone in.',
+    helpTiles: 'Wind, rain, pressure, air, and UV. Turn a tile off or move it. Up is toward the left. The tiles that stay share the row.',
+    helpLook: 'Themes, texture, uppercase titles, and dark paper. Dark paper swaps black and paper. The sketch above matches the paper.',
+    helpHaiku: 'A new poem each local day, or pin one of the 30. The lines stay in English so they fit the box.',
+    haikuHint: 'A new one each local day, or pick one. The poems stay in English.',
+    helpBorders: 'A frame around one part of the paper. Tiles, brew, radio, and the haiku start framed. The forecast, the degrees, and the sky line start open.',
+    helpBrew: 'The words on the brew box. It can name any drink. Tap the tag on the desk to count one. The number goes up and the paper refreshes.',
+    helpRadio: 'The stations the round button plays. One tap turns the radio on or off. A short press of Up or Down changes the volume. Hold one for about two seconds to change station.',
+    language: 'Language', languageHint: 'The paper and this page follow this language.',
+    pairTitle: 'Pair this phone', pairHint: 'Type the six digits on the display.', pairCode: 'Pairing code', pairBtn: 'Pair',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'The home network. The password stays on the device.', network: 'Network name', password: 'Password', saveWifi: 'Save Wi‑Fi',
+    weatherTitle: 'Weather', weatherHint: 'Search for the place that should sit on the paper.', place: 'Place', searchPlaces: 'Search places', usePlace: 'Use this place',
+    temperature: 'Temperature', hoursAhead: 'Hours ahead', forecastShape: 'Forecast', shapeGraph: 'Graph', shapeBars: 'Bars', wind: 'Wind', unitTitle: 'Show the unit in the title',
+    paperTitle: 'On the paper', paperHint: 'Turn the temperature or the forecast off.',
+    bottomTitle: 'Bottom row', bottomHint: 'Turn a box off, or move it. Up is toward the left. The boxes share the width.',
+    blockTemp: 'Temperature', blockForecast: 'Forecast', blockCoffee: 'Coffee', blockRadio: 'Radio',
+    topTitle: 'Top bar', topHint: 'Weekday, date, and time follow the time zone. Choosing a place fills the zone in. Up moves a row toward the left of the screen.',
+    timezone: 'Time zone', time: 'Time', date: 'Date', weekday: 'Weekday',
+    tbWeekday: 'Weekday', tbDate: 'Date', tbTime: 'Time', tbPlace: 'Place', tbWifi: 'Wi‑Fi', tbBattery: 'Battery',
+    tilesTitle: 'Weather tiles', rain: 'Rain', press: 'Press', air: 'Air',
+    lookTitle: 'Look', lookHint: 'The paper prints four pigments: black, paper, yellow, and red.', yourPlace: 'Your place', clearSkies: 'Clear skies',
+    classic: 'Classic', classicHint: 'Ink bar, gold clock', sunset: 'Sunset', sunsetHint: 'Red bar, gold clock',
+    ocean: 'Ocean', oceanHint: 'Ink bar, gold high', marquee: 'Marquee', marqueeHint: 'Gold bar, red clock',
+    chorus: 'Chorus', chorusHint: 'Red clock, red marks', brass: 'Brass', brassHint: 'Gold bar, black type',
+    spotlight: 'Spotlight', spotlightHint: 'Red bar, gold frames', custom: 'Custom', customHint: 'Pick each pigment',
+    bar: 'Bar', accent: 'Accent', alert: 'Alert', high: 'High', low: 'Low',
+    texture: 'Texture', noise: 'Noise', dots: 'Dots', grid: 'Grid', paper: 'Paper', paperAuto: 'Automatic', upperTitles: 'Uppercase box titles', darkPaper: 'Dark paper',
+    haikuLabel: 'Haiku', haikuDaily: 'A new one each day',
+    borders: 'Borders', borderForecast: 'Forecast', borderDegrees: 'Degrees', borderSky: 'Sky line', borderTiles: 'Weather tiles',
+    borderBrew: 'Brew', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Brew', brewHint: 'The words on the Brew tile. Could be any drink.', tileText: 'Tile text',
+    radioTitle: 'Radio', radioHint: 'The stations the round button plays.', addStation: 'Add a station', saveChanges: 'Save changes',
+    remove: 'Remove', name: 'Name', address: 'Address',
+    paired: 'Paired. The desk is yours.', loaded: 'Settings loaded.', wifiSaved: 'Wi‑Fi saved on the device.',
+    typePlace: 'Type a place first.', noPlaces: 'No places found.', placesCount: '%n places.', searchNeeds: 'Search needs an internet connection.',
+    pickPlace: 'Pick a place.', placeSaved: '%s saved.', savedPaper: 'Saved. The paper will refresh.', saving: 'Saving…'
+  },
+  es: {
+    blurb: 'Un panel con radio de jazz, tiempo en directo, un contador de bebidas y un haiku diario. Una experiencia personalizable, hecha a tu manera.',
+    setupTitle: 'Configuración',
+    settingsTitle: 'Ajustes',
+    onWord: 'ON',
+    helpLabel: 'Ayuda',
+    helpLanguage: 'El papel y esta página siguen este idioma.',
+    helpPair: 'Toca dos veces el botón redondo. El papel muestra seis dígitos unos cinco minutos. Únete a JazzTrix-Setup y escribe el código aquí.',
+    helpWifi: 'La red de casa. Al guardar, la contraseña se queda en el aparato. Esta página no la guarda.',
+    helpWeather: 'Tiempo en directo del lugar que elijas. Horas adelante es el pronóstico: 3, 6, 9 o 12 horas. Se dibuja como una gráfica, con las horas abajo y las temperaturas a la izquierda. Las barras son la otra opción. El viento puede ir en m/s, km/h o mph.',
+    helpPaper: 'La temperatura grande y el pronóstico. Apaga uno u otro. El resto del papel se queda.',
+    helpBottom: 'Bebida, radio y el haiku del día. Apaga una caja o muévela. Arriba es hacia la izquierda, y las que quedan se reparten el ancho. Toca la etiqueta para sumar uno al contador.',
+    helpTop: 'Día, fecha, hora, lugar, Wi-Fi y batería. Arriba mueve un elemento hacia la izquierda. El reloj sigue la zona horaria. Al elegir un lugar se rellena la zona.',
+    helpTiles: 'Viento, lluvia, presión, aire y UV. Apaga una casilla o muévela. Arriba es hacia la izquierda. Las que quedan se reparten la fila.',
+    helpLook: 'Temas, textura, títulos en mayúsculas y papel oscuro. El papel oscuro cambia el negro y el papel. El dibujo de arriba coincide con el papel.',
+    helpHaiku: 'Un poema nuevo cada día local, o fija uno de los 30. Los versos se quedan en inglés para caber en la caja.',
+    haikuHint: 'Uno nuevo cada día local, o elige uno. Los poemas se quedan en inglés.',
+    helpBorders: 'Un marco alrededor de una parte del papel. Casillas, bebida, radio y haiku empiezan con marco. El pronóstico, los grados y la línea del cielo empiezan abiertos.',
+    helpBrew: 'Las palabras de la caja de bebida. Puede ser cualquier bebida. Toca la etiqueta del aparato para contar una. El número sube y el papel se actualiza.',
+    helpRadio: 'Las emisoras que toca el botón redondo. Un toque enciende o apaga la radio. Una pulsación corta de Arriba o Abajo cambia el volumen. Mantén uno unos dos segundos para cambiar de emisora.',
+    language: 'Idioma', languageHint: 'El papel y esta página siguen este idioma.',
+    pairTitle: 'Empareja este teléfono', pairHint: 'Escribe los seis dígitos de la pantalla.', pairCode: 'Código', pairBtn: 'Emparejar',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'La red de casa. La contraseña se queda en el aparato.', network: 'Nombre de la red', password: 'Contraseña', saveWifi: 'Guardar Wi‑Fi',
+    weatherTitle: 'Tiempo', weatherHint: 'Busca el lugar que debe salir en el papel.', place: 'Lugar', searchPlaces: 'Buscar lugares', usePlace: 'Usar este lugar',
+    temperature: 'Temperatura', hoursAhead: 'Horas por delante', forecastShape: 'Pronóstico', shapeGraph: 'Gráfica', shapeBars: 'Barras', wind: 'Viento', unitTitle: 'Mostrar la unidad en el título',
+    paperTitle: 'En el papel', paperHint: 'Apaga la temperatura o el pronóstico.',
+    bottomTitle: 'Fila de abajo', bottomHint: 'Apaga una caja o muévela. Arriba es hacia la izquierda. Las cajas se reparten el ancho.',
+    blockTemp: 'Temperatura', blockForecast: 'Pronóstico', blockCoffee: 'Café', blockRadio: 'Radio',
+    topTitle: 'Barra superior', topHint: 'El día, la fecha y la hora siguen la zona horaria. Elegir un lugar rellena la zona. Arriba mueve una fila a la izquierda.',
+    timezone: 'Zona horaria', time: 'Hora', date: 'Fecha', weekday: 'Día',
+    tbWeekday: 'Día', tbDate: 'Fecha', tbTime: 'Hora', tbPlace: 'Lugar', tbWifi: 'Wi‑Fi', tbBattery: 'Batería',
+    tilesTitle: 'Casillas del tiempo', rain: 'Lluvia', press: 'Presión', air: 'Aire',
+    lookTitle: 'Aspecto', lookHint: 'El papel imprime cuatro pigmentos: negro, papel, amarillo y rojo.', yourPlace: 'Tu lugar', clearSkies: 'Cielo despejado',
+    classic: 'Clásico', classicHint: 'Barra negra, reloj dorado', sunset: 'Atardecer', sunsetHint: 'Barra roja, reloj dorado',
+    ocean: 'Océano', oceanHint: 'Barra negra, máxima dorada', marquee: 'Marquesina', marqueeHint: 'Barra dorada, reloj rojo',
+    chorus: 'Coro', chorusHint: 'Reloj rojo, marcas rojas', brass: 'Latón', brassHint: 'Barra dorada, texto negro',
+    spotlight: 'Foco', spotlightHint: 'Barra roja, marcos dorados', custom: 'A medida', customHint: 'Elige cada pigmento',
+    bar: 'Barra', accent: 'Acento', alert: 'Aviso', high: 'Máxima', low: 'Mínima',
+    texture: 'Textura', noise: 'Ruido', dots: 'Puntos', grid: 'Rejilla', upperTitles: 'Títulos en mayúsculas', darkPaper: 'Papel oscuro',
+    haikuLabel: 'Haiku', haikuDaily: 'Uno nuevo cada día',
+    borders: 'Marcos', borderForecast: 'Pronóstico', borderDegrees: 'Grados', borderSky: 'Línea del cielo', borderTiles: 'Casillas del tiempo',
+    borderBrew: 'Bebida', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Bebida', brewHint: 'Las palabras de la casilla. Puede ser cualquier bebida.', tileText: 'Texto',
+    radioTitle: 'Radio', radioHint: 'Las emisoras del botón redondo.', addStation: 'Añadir emisora', saveChanges: 'Guardar cambios',
+    remove: 'Quitar', name: 'Nombre', address: 'Dirección',
+    paired: 'Emparejado. El escritorio es tuyo.', loaded: 'Ajustes cargados.', wifiSaved: 'Wi‑Fi guardado en el aparato.',
+    typePlace: 'Escribe un lugar primero.', noPlaces: 'No hay lugares.', placesCount: '%n lugares.', searchNeeds: 'La búsqueda necesita internet.',
+    pickPlace: 'Elige un lugar.', placeSaved: '%s guardado.', savedPaper: 'Guardado. El papel se actualizará.', saving: 'Guardando…'
+  },
+  zh: {
+    blurb: '一块仪表盘：爵士电台、实时天气、饮品计数，以及每日俳句。完全可定制，做成你自己的。',
+    setupTitle: '配置',
+    settingsTitle: '设置',
+    onWord: '开',
+    helpLabel: '帮助',
+    helpLanguage: '纸屏和本页都用这个语言。',
+    helpPair: '双击圆按钮。纸屏会显示六位数字，大约五分钟。加入 JazzTrix-Setup，在这里输入代码。',
+    helpWifi: '家里的网络。保存之后，密码留在设备上。本页不保存密码。',
+    helpWeather: '你所选地点的实时天气。提前小时数是预报：3、6、9 或 12 小时。默认画成曲线，时间在下方，温度在左侧。也可以改成柱状。风速可以是 m/s、km/h 或 mph。',
+    helpPaper: '大号温度和预报。可以关掉其中一块。纸屏的其余部分还在。',
+    helpBottom: '饮品、电台和每日俳句。可以关掉一格或调整顺序。向上是往左边，留下的格子会平分宽度。轻点标签，饮品计数加一。',
+    helpTop: '星期、日期、时间、地点、Wi-Fi 和电量。向上把一项移到左边。时钟跟随时区。选定地点后会填入时区。',
+    helpTiles: '风、雨、气压、空气和紫外线。可以关掉一格或调整顺序。向上是往左边。留下的格子平分这一行。',
+    helpLook: '主题、纹理、大写标题和深色纸。深色纸对调黑色和纸色。上面的草图和纸屏一致。',
+    helpHaiku: '每个当地日换一首，或从 30 首里固定一首。诗句保持英文，才能放进格子。',
+    haikuHint: '每个当地日一首新的，或自己选。诗保持英文。',
+    helpBorders: '给纸屏的一块加框。天气格、饮品、电台和俳句默认有框。预报、温度数字和天空一行默认没有。',
+    helpBrew: '饮品格上的字。可以是任何饮料。轻点设备上的标签就计一次。数字增加，纸屏会刷新。',
+    helpRadio: '圆按钮播放的电台。点一下开关电台。短按上或下改变音量。按住大约两秒换台。',
+    language: '语言', languageHint: '纸屏和本页都使用这个语言。',
+    pairTitle: '配对这台手机', pairHint: '输入屏幕上的六位数字。', pairCode: '配对码', pairBtn: '配对',
+    wifiTitle: 'Wi‑Fi', wifiHint: '家里的网络。密码只留在设备上。', network: '网络名称', password: '密码', saveWifi: '保存 Wi‑Fi',
+    weatherTitle: '天气', weatherHint: '搜索要显示在纸屏上的地点。', place: '地点', searchPlaces: '搜索地点', usePlace: '使用这个地点',
+    temperature: '温度', hoursAhead: '未来小时', forecastShape: '预报', shapeGraph: '曲线', shapeBars: '柱状', wind: '风', unitTitle: '在标题里显示单位',
+    paperTitle: '纸屏上', paperHint: '可以关掉温度或预报。',
+    bottomTitle: '底栏', bottomHint: '可以关掉一格，或调整顺序。向上是往左边。格子会自动平分宽度。',
+    blockTemp: '温度', blockForecast: '预报', blockCoffee: '咖啡', blockRadio: '电台',
+    topTitle: '顶栏', topHint: '星期、日期和时间跟随时区。选定地点后会填入时区。向上把一行移到左边。',
+    timezone: '时区', time: '时间', date: '日期', weekday: '星期',
+    tbWeekday: '星期', tbDate: '日期', tbTime: '时间', tbPlace: '地点', tbWifi: 'Wi‑Fi', tbBattery: '电池',
+    tilesTitle: '天气格', rain: '降雨', press: '气压', air: '空气',
+    lookTitle: '外观', lookHint: '纸屏有四种颜料：黑、纸、黄、红。', yourPlace: '你的地点', clearSkies: '晴',
+    classic: '经典', classicHint: '黑条，金时钟', sunset: '日落', sunsetHint: '红条，金时钟',
+    ocean: '海洋', oceanHint: '黑条，金高温', marquee: '灯箱', marqueeHint: '金条，红时钟',
+    chorus: '合唱', chorusHint: '红时钟，红标记', brass: '铜管', brassHint: '金条，黑字',
+    spotlight: '聚光', spotlightHint: '红条，金边框', custom: '自定义', customHint: '自选每种颜料',
+    bar: '顶条', accent: '强调', alert: '警示', high: '高温', low: '低温',
+    texture: '纹理', noise: '噪点', dots: '圆点', grid: '网格', upperTitles: '标题用大写', darkPaper: '深色纸',
+    haikuLabel: '俳句', haikuDaily: '每天一首新的',
+    borders: '边框', borderForecast: '预报', borderDegrees: '温度', borderSky: '天空一行', borderTiles: '天气格',
+    borderBrew: '饮品', borderRadio: '电台', borderHaiku: '俳句',
+    brewTitle: '饮品', brewHint: '饮品格上的字。可以是任何饮料。', tileText: '格上的字',
+    radioTitle: '电台', radioHint: '圆按钮播放的电台。', addStation: '添加电台', saveChanges: '保存更改',
+    remove: '删除', name: '名称', address: '地址',
+    paired: '已配对。这张桌子归你了。', loaded: '设置已载入。', wifiSaved: 'Wi‑Fi 已存在设备上。',
+    typePlace: '请先输入地点。', noPlaces: '没有找到地点。', placesCount: '%n 个地点。', searchNeeds: '搜索需要互联网。',
+    pickPlace: '请选择一个地点。', placeSaved: '已保存 %s。', savedPaper: '已保存。纸屏会刷新。', saving: '正在保存…'
+  },
+  de: {
+    blurb: 'Ein Dashboard mit Jazzradio, Live-Wetter, einem Getränkezähler und einem täglichen Haiku. Voll anpassbar, ganz nach dir.',
+    setupTitle: 'Setup',
+    settingsTitle: 'Einstellungen',
+    onWord: 'AN',
+    helpLabel: 'Hilfe',
+    helpLanguage: 'Das Papier und diese Seite folgen dieser Sprache.',
+    helpPair: 'Tippe zweimal auf den runden Knopf. Das Papier zeigt sechs Ziffern für etwa fünf Minuten. Tritt JazzTrix-Setup bei und tippe den Code hier ein.',
+    helpWifi: 'Das Heimnetz. Nach dem Speichern bleibt das Passwort auf dem Gerät. Diese Seite behält es nicht.',
+    helpWeather: 'Live-Wetter für den Ort, den du wählst. Stunden im Voraus ist die Vorhersage: 3, 6, 9 oder 12 Stunden. Sie wird als Graph gezeichnet, Stunden unten, Temperaturen links. Balken sind die andere Wahl. Wind kann in m/s, km/h oder mph stehen.',
+    helpPaper: 'Die große Temperatur und die Vorhersage. Schalte eine von beiden aus. Der Rest des Papiers bleibt.',
+    helpBottom: 'Getränk, Radio und das tägliche Haiku. Schalte ein Feld aus oder verschiebe es. Hoch heißt nach links, und die übrigen Felder teilen sich die Breite. Tippe auf die Marke, um eins zur Zählung zu addieren.',
+    helpTop: 'Wochentag, Datum, Zeit, Ort, WLAN und Akku. Hoch schiebt einen Eintrag nach links. Die Uhr folgt der Zeitzone. Ein Ort füllt die Zone aus.',
+    helpTiles: 'Wind, Regen, Druck, Luft und UV. Schalte eine Kachel aus oder verschiebe sie. Hoch heißt nach links. Die übrigen Kacheln teilen sich die Reihe.',
+    helpLook: 'Themen, Textur, Großbuchstaben und dunkles Papier. Dunkles Papier tauscht Schwarz und Papier. Die Skizze oben entspricht dem Papier.',
+    helpHaiku: 'Jeden lokalen Tag ein neues Gedicht, oder eines der 30 bleibt fest. Die Zeilen bleiben auf Englisch, damit sie ins Feld passen.',
+    haikuHint: 'Jeden lokalen Tag ein neues, oder such eines aus. Die Gedichte bleiben auf Englisch.',
+    helpBorders: 'Ein Rahmen um einen Teil des Papiers. Kacheln, Getränk, Radio und Haiku starten mit Rahmen. Vorhersage, Grade und die Himmelszeile starten offen.',
+    helpBrew: 'Die Wörter auf dem Getränkefeld. Es kann jedes Getränk sein. Tippe auf die Marke am Gerät, um eins zu zählen. Die Zahl steigt, und das Papier aktualisiert sich.',
+    helpRadio: 'Die Sender, die der runde Knopf spielt. Ein Tipp schaltet das Radio ein oder aus. Ein kurzer Druck auf Hoch oder Runter ändert die Lautstärke. Halte etwa zwei Sekunden, um den Sender zu wechseln.',
+    language: 'Sprache', languageHint: 'Papier und diese Seite folgen dieser Sprache.',
+    pairTitle: 'Dieses Handy koppeln', pairHint: 'Tippe die sechs Ziffern vom Display.', pairCode: 'Kopplungscode', pairBtn: 'Koppeln',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'Das Heimnetz. Das Passwort bleibt auf dem Gerät.', network: 'Netzname', password: 'Passwort', saveWifi: 'Wi‑Fi sichern',
+    weatherTitle: 'Wetter', weatherHint: 'Suche den Ort, der auf dem Papier stehen soll.', place: 'Ort', searchPlaces: 'Orte suchen', usePlace: 'Diesen Ort nutzen',
+    temperature: 'Temperatur', hoursAhead: 'Stunden voraus', forecastShape: 'Vorhersage', shapeGraph: 'Graph', shapeBars: 'Balken', wind: 'Wind', unitTitle: 'Einheit im Titel zeigen',
+    paperTitle: 'Auf dem Papier', paperHint: 'Schalte die Temperatur oder die Vorhersage aus.',
+    bottomTitle: 'Untere Reihe', bottomHint: 'Schalte ein Feld aus oder verschiebe es. Hoch heißt nach links. Die Felder teilen sich die Breite.',
+    blockTemp: 'Temperatur', blockForecast: 'Vorhersage', blockCoffee: 'Kaffee', blockRadio: 'Radio',
+    topTitle: 'Leiste oben', topHint: 'Wochentag, Datum und Zeit folgen der Zeitzone. Ein Ort füllt die Zone. Hoch schiebt eine Zeile nach links.',
+    timezone: 'Zeitzone', time: 'Zeit', date: 'Datum', weekday: 'Wochentag',
+    tbWeekday: 'Wochentag', tbDate: 'Datum', tbTime: 'Zeit', tbPlace: 'Ort', tbWifi: 'Wi‑Fi', tbBattery: 'Batterie',
+    tilesTitle: 'Wetterkacheln', rain: 'Regen', press: 'Druck', air: 'Luft',
+    lookTitle: 'Aussehen', lookHint: 'Das Papier druckt vier Pigmente: Schwarz, Papier, Gelb und Rot.', yourPlace: 'Dein Ort', clearSkies: 'Klarer Himmel',
+    classic: 'Klassisch', classicHint: 'Schwarze Leiste, goldene Uhr', sunset: 'Sonnenuntergang', sunsetHint: 'Rote Leiste, goldene Uhr',
+    ocean: 'Ozean', oceanHint: 'Schwarze Leiste, goldenes Hoch', marquee: 'Lichtkasten', marqueeHint: 'Goldene Leiste, rote Uhr',
+    chorus: 'Chor', chorusHint: 'Rote Uhr, rote Marken', brass: 'Blech', brassHint: 'Goldene Leiste, schwarze Schrift',
+    spotlight: 'Scheinwerfer', spotlightHint: 'Rote Leiste, goldene Rahmen', custom: 'Eigen', customHint: 'Jedes Pigment wählen',
+    bar: 'Leiste', accent: 'Akzent', alert: 'Alarm', high: 'Hoch', low: 'Tief',
+    texture: 'Textur', noise: 'Rauschen', dots: 'Punkte', grid: 'Gitter', upperTitles: 'Titel in Großbuchstaben', darkPaper: 'Dunkles Papier',
+    haikuLabel: 'Haiku', haikuDaily: 'Jeden Tag ein neues',
+    borders: 'Rahmen', borderForecast: 'Vorhersage', borderDegrees: 'Grade', borderSky: 'Himmelszeile', borderTiles: 'Wetterkacheln',
+    borderBrew: 'Getränk', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Getränk', brewHint: 'Die Wörter auf der Kachel. Darf jedes Getränk sein.', tileText: 'Kacheltext',
+    radioTitle: 'Radio', radioHint: 'Die Sender der runden Taste.', addStation: 'Sender hinzufügen', saveChanges: 'Änderungen sichern',
+    remove: 'Entfernen', name: 'Name', address: 'Adresse',
+    paired: 'Gekoppelt. Der Tisch gehört dir.', loaded: 'Einstellungen geladen.', wifiSaved: 'Wi‑Fi auf dem Gerät gesichert.',
+    typePlace: 'Zuerst einen Ort tippen.', noPlaces: 'Keine Orte gefunden.', placesCount: '%n Orte.', searchNeeds: 'Die Suche braucht Internet.',
+    pickPlace: 'Wähle einen Ort.', placeSaved: '%s gesichert.', savedPaper: 'Gesichert. Das Papier aktualisiert sich.', saving: 'Wird gesichert…'
+  },
+  fr: {
+    blurb: 'Un tableau avec radio jazz, météo en direct, un compteur de boissons et un haïku du jour. Une expérience personnalisable, à ta façon.',
+    setupTitle: 'Configuration',
+    settingsTitle: 'Réglages',
+    onWord: 'ON',
+    helpLabel: 'Aide',
+    helpLanguage: 'Le papier et cette page suivent cette langue.',
+    helpPair: 'Touche deux fois le bouton rond. Le papier montre six chiffres pendant environ cinq minutes. Rejoins JazzTrix-Setup et tape le code ici.',
+    helpWifi: 'Le réseau de la maison. Une fois enregistré, le mot de passe reste sur l’appareil. Cette page ne le garde pas.',
+    helpWeather: 'La météo en direct du lieu choisi. Heures à l’avance, c’est la prévision : 3, 6, 9 ou 12 heures. Elle se dessine en courbe : les heures en bas, les températures à gauche. Les barres sont l’autre choix. Le vent peut s’afficher en m/s, km/h ou mph.',
+    helpPaper: 'La grande température et la prévision. Éteins l’une ou l’autre. Le reste du papier reste.',
+    helpBottom: 'Boisson, radio et le haïku du jour. Éteins une case ou déplace-la. Haut va vers la gauche, et les cases qui restent se partagent la largeur. Touche l’étiquette pour ajouter un au compteur.',
+    helpTop: 'Jour, date, heure, lieu, Wi-Fi et batterie. Haut déplace un élément vers la gauche. L’horloge suit le fuseau. Choisir un lieu remplit le fuseau.',
+    helpTiles: 'Vent, pluie, pression, air et UV. Éteins une tuile ou déplace-la. Haut va vers la gauche. Les tuiles qui restent se partagent la rangée.',
+    helpLook: 'Thèmes, texture, titres en capitales et papier sombre. Le papier sombre échange le noir et le papier. Le croquis du dessus suit le papier.',
+    helpHaiku: 'Un poème nouveau chaque jour local, ou épingle un des 30. Les lignes restent en anglais pour tenir dans la case.',
+    haikuHint: 'Un nouveau chaque jour local, ou choisis-en un. Les poèmes restent en anglais.',
+    helpBorders: 'Un cadre autour d’une partie du papier. Tuiles, boisson, radio et haïku commencent avec un cadre. La prévision, les degrés et la ligne du ciel commencent ouverts.',
+    helpBrew: 'Les mots de la case boisson. Ce peut être n’importe quelle boisson. Touche l’étiquette sur l’appareil pour en compter une. Le nombre monte et le papier se rafraîchit.',
+    helpRadio: 'Les stations que joue le bouton rond. Un toucher allume ou éteint la radio. Un appui court sur Haut ou Bas change le volume. Maintiens environ deux secondes pour changer de station.',
+    language: 'Langue', languageHint: 'Le papier et cette page suivent cette langue.',
+    pairTitle: 'Appaire ce téléphone', pairHint: 'Tape les six chiffres de l’écran.', pairCode: 'Code', pairBtn: 'Appairer',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'Le réseau de la maison. Le mot de passe reste sur l’appareil.', network: 'Nom du réseau', password: 'Mot de passe', saveWifi: 'Enregistrer le Wi‑Fi',
+    weatherTitle: 'Météo', weatherHint: 'Cherche le lieu qui doit apparaître sur le papier.', place: 'Lieu', searchPlaces: 'Chercher des lieux', usePlace: 'Utiliser ce lieu',
+    temperature: 'Température', hoursAhead: 'Heures à venir', forecastShape: 'Prévision', shapeGraph: 'Courbe', shapeBars: 'Barres', wind: 'Vent', unitTitle: 'Montrer l’unité dans le titre',
+    paperTitle: 'Sur le papier', paperHint: 'Éteins la température ou la prévision.',
+    bottomTitle: 'Rangée du bas', bottomHint: 'Éteins une case ou déplace-la. Haut va vers la gauche. Les cases se partagent la largeur.',
+    blockTemp: 'Température', blockForecast: 'Prévision', blockCoffee: 'Café', blockRadio: 'Radio',
+    topTitle: 'Barre du haut', topHint: 'Le jour, la date et l’heure suivent le fuseau. Choisir un lieu remplit le fuseau. Haut déplace une ligne vers la gauche.',
+    timezone: 'Fuseau', time: 'Heure', date: 'Date', weekday: 'Jour',
+    tbWeekday: 'Jour', tbDate: 'Date', tbTime: 'Heure', tbPlace: 'Lieu', tbWifi: 'Wi‑Fi', tbBattery: 'Batterie',
+    tilesTitle: 'Tuiles météo', rain: 'Pluie', press: 'Pression', air: 'Air',
+    lookTitle: 'Aspect', lookHint: 'Le papier imprime quatre pigments : noir, papier, jaune et rouge.', yourPlace: 'Ton lieu', clearSkies: 'Ciel clair',
+    classic: 'Classique', classicHint: 'Barre noire, horloge dorée', sunset: 'Coucher', sunsetHint: 'Barre rouge, horloge dorée',
+    ocean: 'Océan', oceanHint: 'Barre noire, max doré', marquee: 'Marquise', marqueeHint: 'Barre dorée, horloge rouge',
+    chorus: 'Chœur', chorusHint: 'Horloge rouge, marques rouges', brass: 'Cuivres', brassHint: 'Barre dorée, texte noir',
+    spotlight: 'Projecteur', spotlightHint: 'Barre rouge, cadres dorés', custom: 'Sur mesure', customHint: 'Choisis chaque pigment',
+    bar: 'Barre', accent: 'Accent', alert: 'Alerte', high: 'Max', low: 'Min',
+    texture: 'Texture', noise: 'Bruit', dots: 'Points', grid: 'Grille', upperTitles: 'Titres en capitales', darkPaper: 'Papier sombre',
+    haikuLabel: 'Haïku', haikuDaily: 'Un nouveau chaque jour',
+    borders: 'Cadres', borderForecast: 'Prévision', borderDegrees: 'Degrés', borderSky: 'Ligne du ciel', borderTiles: 'Tuiles météo',
+    borderBrew: 'Boisson', borderRadio: 'Radio', borderHaiku: 'Haïku',
+    brewTitle: 'Boisson', brewHint: 'Les mots de la tuile. N’importe quelle boisson.', tileText: 'Texte',
+    radioTitle: 'Radio', radioHint: 'Les stations du bouton rond.', addStation: 'Ajouter une station', saveChanges: 'Enregistrer',
+    remove: 'Retirer', name: 'Nom', address: 'Adresse',
+    paired: 'Appairé. Le bureau est à toi.', loaded: 'Réglages chargés.', wifiSaved: 'Wi‑Fi enregistré sur l’appareil.',
+    typePlace: 'Écris d’abord un lieu.', noPlaces: 'Aucun lieu.', placesCount: '%n lieux.', searchNeeds: 'La recherche a besoin d’internet.',
+    pickPlace: 'Choisis un lieu.', placeSaved: '%s enregistré.', savedPaper: 'Enregistré. Le papier va se rafraîchir.', saving: 'Enregistrement…'
+  },
+  it: {
+    blurb: 'Un pannello con radio jazz, meteo in diretta, un contatore di bevande e un haiku del giorno. Un’esperienza personalizzabile, a modo tuo.',
+    setupTitle: 'Configurazione',
+    settingsTitle: 'Impostazioni',
+    onWord: 'ON',
+    helpLabel: 'Aiuto',
+    helpLanguage: 'La carta e questa pagina seguono questa lingua.',
+    helpPair: 'Tocca due volte il pulsante rotondo. La carta mostra sei cifre per circa cinque minuti. Entra in JazzTrix-Setup e scrivi il codice qui.',
+    helpWifi: 'La rete di casa. Dopo il salvataggio la password resta sul dispositivo. Questa pagina non la conserva.',
+    helpWeather: 'Meteo in diretta per il luogo che scegli. Ore avanti è la previsione: 3, 6, 9 o 12 ore. Si disegna come un grafico: ore in basso, temperature a sinistra. Le barre sono l’altra scelta. Il vento può essere in m/s, km/h o mph.',
+    helpPaper: 'La temperatura grande e la previsione. Spegni l’una o l’altra. Il resto della carta resta.',
+    helpBottom: 'Bevanda, radio e l’haiku del giorno. Spegni una casella o spostala. Su va verso sinistra, e le caselle che restano si dividono la larghezza. Tocca il tag per aggiungere uno al conteggio.',
+    helpTop: 'Giorno, data, ora, luogo, Wi-Fi e batteria. Su sposta una voce verso sinistra. L’orologio segue il fuso. Scegliere un luogo compila il fuso.',
+    helpTiles: 'Vento, pioggia, pressione, aria e UV. Spegni una tessera o spostala. Su va verso sinistra. Le tessere che restano si dividono la riga.',
+    helpLook: 'Temi, trama, titoli maiuscoli e carta scura. La carta scura scambia nero e carta. Lo schizzo sopra segue la carta.',
+    helpHaiku: 'Una poesia nuova ogni giorno locale, oppure fissane una delle 30. I versi restano in inglese per stare nella casella.',
+    haikuHint: 'Una nuova ogni giorno locale, oppure scegline una. Le poesie restano in inglese.',
+    helpBorders: 'Una cornice intorno a una parte della carta. Tessere, bevanda, radio e haiku partono incorniciati. La previsione, i gradi e la riga del cielo partono aperti.',
+    helpBrew: 'Le parole sulla casella della bevanda. Può essere qualsiasi bevanda. Tocca il tag sul dispositivo per contarne una. Il numero sale e la carta si aggiorna.',
+    helpRadio: 'Le stazioni che suona il pulsante rotondo. Un tocco accende o spegne la radio. Una pressione breve di Su o Giù cambia il volume. Tieni premuto circa due secondi per cambiare stazione.',
+    language: 'Lingua', languageHint: 'La carta e questa pagina seguono questa lingua.',
+    pairTitle: 'Abbina questo telefono', pairHint: 'Scrivi le sei cifre sullo schermo.', pairCode: 'Codice', pairBtn: 'Abbina',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'La rete di casa. La password resta sul dispositivo.', network: 'Nome della rete', password: 'Password', saveWifi: 'Salva Wi‑Fi',
+    weatherTitle: 'Meteo', weatherHint: 'Cerca il luogo che deve stare sulla carta.', place: 'Luogo', searchPlaces: 'Cerca luoghi', usePlace: 'Usa questo luogo',
+    temperature: 'Temperatura', hoursAhead: 'Ore avanti', forecastShape: 'Previsione', shapeGraph: 'Grafico', shapeBars: 'Barre', wind: 'Vento', unitTitle: 'Mostra l’unità nel titolo',
+    paperTitle: 'Sulla carta', paperHint: 'Spegni la temperatura o la previsione.',
+    bottomTitle: 'Riga in basso', bottomHint: 'Spegni una casella o spostala. Su va verso sinistra. Le caselle si dividono la larghezza.',
+    blockTemp: 'Temperatura', blockForecast: 'Previsioni', blockCoffee: 'Caffè', blockRadio: 'Radio',
+    topTitle: 'Barra in alto', topHint: 'Giorno, data e ora seguono il fuso. Scegliere un luogo riempie il fuso. Su sposta una riga a sinistra.',
+    timezone: 'Fuso orario', time: 'Ora', date: 'Data', weekday: 'Giorno',
+    tbWeekday: 'Giorno', tbDate: 'Data', tbTime: 'Ora', tbPlace: 'Luogo', tbWifi: 'Wi‑Fi', tbBattery: 'Batteria',
+    tilesTitle: 'Riquadri meteo', rain: 'Pioggia', press: 'Pressione', air: 'Aria',
+    lookTitle: 'Aspetto', lookHint: 'La carta stampa quattro pigmenti: nero, carta, giallo e rosso.', yourPlace: 'Il tuo luogo', clearSkies: 'Cielo sereno',
+    classic: 'Classico', classicHint: 'Barra nera, orologio oro', sunset: 'Tramonto', sunsetHint: 'Barra rossa, orologio oro',
+    ocean: 'Oceano', oceanHint: 'Barra nera, massima oro', marquee: 'Insegna', marqueeHint: 'Barra oro, orologio rosso',
+    chorus: 'Coro', chorusHint: 'Orologio rosso, segni rossi', brass: 'Ottoni', brassHint: 'Barra oro, testo nero',
+    spotlight: 'Riflettore', spotlightHint: 'Barra rossa, cornici oro', custom: 'Su misura', customHint: 'Scegli ogni pigmento',
+    bar: 'Barra', accent: 'Accento', alert: 'Allarme', high: 'Massima', low: 'Minima',
+    texture: 'Texture', noise: 'Rumore', dots: 'Punti', grid: 'Griglia', upperTitles: 'Titoli in maiuscolo', darkPaper: 'Carta scura',
+    haikuLabel: 'Haiku', haikuDaily: 'Uno nuovo ogni giorno',
+    borders: 'Cornici', borderForecast: 'Previsioni', borderDegrees: 'Gradi', borderSky: 'Riga del cielo', borderTiles: 'Riquadri meteo',
+    borderBrew: 'Bevanda', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Bevanda', brewHint: 'Le parole sul riquadro. Può essere qualsiasi bevanda.', tileText: 'Testo',
+    radioTitle: 'Radio', radioHint: 'Le stazioni del pulsante rotondo.', addStation: 'Aggiungi una stazione', saveChanges: 'Salva le modifiche',
+    remove: 'Rimuovi', name: 'Nome', address: 'Indirizzo',
+    paired: 'Abbinato. La scrivania è tua.', loaded: 'Impostazioni caricate.', wifiSaved: 'Wi‑Fi salvato sul dispositivo.',
+    typePlace: 'Scrivi prima un luogo.', noPlaces: 'Nessun luogo.', placesCount: '%n luoghi.', searchNeeds: 'La ricerca ha bisogno di internet.',
+    pickPlace: 'Scegli un luogo.', placeSaved: '%s salvato.', savedPaper: 'Salvato. La carta si aggiorna.', saving: 'Salvataggio…'
+  },
+  pt: {
+    blurb: 'Um painel com rádio jazz, tempo ao vivo, um contador de bebidas e um haiku diário. Uma experiência personalizável, à tua maneira.',
+    setupTitle: 'Configuração',
+    settingsTitle: 'Definições',
+    onWord: 'ON',
+    helpLabel: 'Ajuda',
+    helpLanguage: 'O papel e esta página seguem este idioma.',
+    helpPair: 'Toca duas vezes no botão redondo. O papel mostra seis dígitos durante cerca de cinco minutos. Entra em JazzTrix-Setup e escreve o código aqui.',
+    helpWifi: 'A rede de casa. Depois de guardar, a palavra-passe fica no aparelho. Esta página não a guarda.',
+    helpWeather: 'Tempo ao vivo do lugar que escolhes. Horas à frente é a previsão: 3, 6, 9 ou 12 horas. Desenha-se em gráfico: horas em baixo, temperaturas à esquerda. As barras são a outra escolha. O vento pode aparecer em m/s, km/h ou mph.',
+    helpPaper: 'A temperatura grande e a previsão. Desliga uma ou outra. O resto do papel fica.',
+    helpBottom: 'Bebida, rádio e o haiku do dia. Desliga uma caixa ou move-a. Para cima é para a esquerda, e as caixas que ficam partilham a largura. Toca na etiqueta para somar um à contagem.',
+    helpTop: 'Dia da semana, data, hora, lugar, Wi-Fi e bateria. Para cima move um item para a esquerda. O relógio segue o fuso. Escolher um lugar preenche o fuso.',
+    helpTiles: 'Vento, chuva, pressão, ar e UV. Desliga um quadrado ou move-o. Para cima é para a esquerda. Os que ficam partilham a fila.',
+    helpLook: 'Temas, textura, títulos em maiúsculas e papel escuro. O papel escuro troca o preto e o papel. O desenho acima acompanha o papel.',
+    helpHaiku: 'Um poema novo em cada dia local, ou fixa um dos 30. Os versos ficam em inglês para caberem na caixa.',
+    haikuHint: 'Um novo em cada dia local, ou escolhe um. Os poemas ficam em inglês.',
+    helpBorders: 'Uma moldura à volta de uma parte do papel. Quadrados, bebida, rádio e haiku começam com moldura. A previsão, os graus e a linha do céu começam abertos.',
+    helpBrew: 'As palavras na caixa da bebida. Pode ser qualquer bebida. Toca na etiqueta do aparelho para contar uma. O número sobe e o papel atualiza.',
+    helpRadio: 'As estações que o botão redondo toca. Um toque liga ou desliga o rádio. Uma pressão curta em Cima ou Baixo muda o volume. Mantém cerca de dois segundos para mudar de estação.',
+    language: 'Idioma', languageHint: 'O papel e esta página seguem este idioma.',
+    pairTitle: 'Emparelha este telefone', pairHint: 'Escreve os seis dígitos do ecrã.', pairCode: 'Código', pairBtn: 'Emparelhar',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'A rede de casa. A palavra-passe fica no aparelho.', network: 'Nome da rede', password: 'Palavra-passe', saveWifi: 'Guardar Wi‑Fi',
+    weatherTitle: 'Tempo', weatherHint: 'Procura o lugar que deve ficar no papel.', place: 'Lugar', searchPlaces: 'Procurar lugares', usePlace: 'Usar este lugar',
+    temperature: 'Temperatura', hoursAhead: 'Horas à frente', forecastShape: 'Previsão', shapeGraph: 'Gráfico', shapeBars: 'Barras', wind: 'Vento', unitTitle: 'Mostrar a unidade no título',
+    paperTitle: 'No papel', paperHint: 'Desliga a temperatura ou a previsão.',
+    bottomTitle: 'Fila de baixo', bottomHint: 'Desliga uma caixa ou move-a. Para cima é para a esquerda. As caixas partilham a largura.',
+    blockTemp: 'Temperatura', blockForecast: 'Previsão', blockCoffee: 'Café', blockRadio: 'Rádio',
+    topTitle: 'Barra de cima', topHint: 'O dia, a data e a hora seguem o fuso. Escolher um lugar preenche o fuso. Para cima move uma linha para a esquerda.',
+    timezone: 'Fuso horário', time: 'Hora', date: 'Data', weekday: 'Dia',
+    tbWeekday: 'Dia', tbDate: 'Data', tbTime: 'Hora', tbPlace: 'Lugar', tbWifi: 'Wi‑Fi', tbBattery: 'Bateria',
+    tilesTitle: 'Caixas do tempo', rain: 'Chuva', press: 'Pressão', air: 'Ar',
+    lookTitle: 'Aspeto', lookHint: 'O papel imprime quatro pigmentos: preto, papel, amarelo e vermelho.', yourPlace: 'O teu lugar', clearSkies: 'Céu limpo',
+    classic: 'Clássico', classicHint: 'Barra preta, relógio dourado', sunset: 'Pôr do sol', sunsetHint: 'Barra vermelha, relógio dourado',
+    ocean: 'Oceano', oceanHint: 'Barra preta, máxima dourada', marquee: 'Marquise', marqueeHint: 'Barra dourada, relógio vermelho',
+    chorus: 'Coro', chorusHint: 'Relógio vermelho, marcas vermelhas', brass: 'Metais', brassHint: 'Barra dourada, texto preto',
+    spotlight: 'Foco', spotlightHint: 'Barra vermelha, molduras douradas', custom: 'À medida', customHint: 'Escolhe cada pigmento',
+    bar: 'Barra', accent: 'Acento', alert: 'Alerta', high: 'Máxima', low: 'Mínima',
+    texture: 'Textura', noise: 'Ruído', dots: 'Pontos', grid: 'Grelha', upperTitles: 'Títulos em maiúsculas', darkPaper: 'Papel escuro',
+    haikuLabel: 'Haiku', haikuDaily: 'Um novo por dia',
+    borders: 'Molduras', borderForecast: 'Previsão', borderDegrees: 'Graus', borderSky: 'Linha do céu', borderTiles: 'Caixas do tempo',
+    borderBrew: 'Bebida', borderRadio: 'Rádio', borderHaiku: 'Haiku',
+    brewTitle: 'Bebida', brewHint: 'As palavras na caixa. Pode ser qualquer bebida.', tileText: 'Texto',
+    radioTitle: 'Rádio', radioHint: 'As estações do botão redondo.', addStation: 'Adicionar estação', saveChanges: 'Guardar alterações',
+    remove: 'Remover', name: 'Nome', address: 'Endereço',
+    paired: 'Emparelhado. A secretária é tua.', loaded: 'Definições carregadas.', wifiSaved: 'Wi‑Fi guardado no aparelho.',
+    typePlace: 'Escreve primeiro um lugar.', noPlaces: 'Nenhum lugar.', placesCount: '%n lugares.', searchNeeds: 'A procura precisa de internet.',
+    pickPlace: 'Escolhe um lugar.', placeSaved: '%s guardado.', savedPaper: 'Guardado. O papel vai atualizar.', saving: 'A guardar…'
+  },
+  nl: {
+    blurb: 'Een dashboard met jazzradio, live weer, een drankenteller en een dagelijkse haiku. Helemaal naar eigen smaak, van jou.',
+    setupTitle: 'Instellen',
+    settingsTitle: 'Instellingen',
+    onWord: 'AAN',
+    helpLabel: 'Hulp',
+    helpLanguage: 'Het papier en deze pagina volgen deze taal.',
+    helpPair: 'Tik twee keer op de ronde knop. Het papier toont zes cijfers, ongeveer vijf minuten. Ga naar JazzTrix-Setup en typ de code hier.',
+    helpWifi: 'Het thuisnetwerk. Na het opslaan blijft het wachtwoord op het apparaat. Deze pagina bewaart het niet.',
+    helpWeather: 'Live weer voor de plaats die je kiest. Uren vooruit is de verwachting: 3, 6, 9 of 12 uur. Die wordt een grafiek: uren onderaan, temperaturen links. Staven zijn de andere keuze. Wind kan in m/s, km/h of mph.',
+    helpPaper: 'De grote temperatuur en de verwachting. Zet er een uit. De rest van het papier blijft.',
+    helpBottom: 'Drank, radio en de dagelijkse haiku. Zet een vak uit of verplaats het. Omhoog is naar links, en de vakken die blijven delen de breedte. Tik op het label om er een bij de telling te doen.',
+    helpTop: 'Weekdag, datum, tijd, plaats, wifi en batterij. Omhoog schuift een regel naar links. De klok volgt de tijdzone. Een plaats vult de zone in.',
+    helpTiles: 'Wind, regen, druk, lucht en UV. Zet een tegel uit of verplaats hem. Omhoog is naar links. De tegels die blijven delen de rij.',
+    helpLook: 'Thema’s, textuur, hoofdletters en donker papier. Donker papier wisselt zwart en papier. De schets hierboven volgt het papier.',
+    helpHaiku: 'Elke lokale dag een nieuw gedicht, of pin er een van de 30. De regels blijven Engels zodat ze in het vak passen.',
+    haikuHint: 'Elke lokale dag een nieuwe, of kies er een. De gedichten blijven Engels.',
+    helpBorders: 'Een kader om een deel van het papier. Tegels, drank, radio en haiku beginnen met een kader. Verwachting, graden en de luchtregel beginnen open.',
+    helpBrew: 'De woorden op het drankvak. Het mag elke drank zijn. Tik op het label op het apparaat om er een te tellen. Het getal stijgt en het papier ververst.',
+    helpRadio: 'De zenders die de ronde knop speelt. Eén tik zet de radio aan of uit. Een korte druk op Omhoog of Omlaag verandert het volume. Houd ongeveer twee seconden vast om van zender te wisselen.',
+    language: 'Taal', languageHint: 'Het papier en deze pagina volgen deze taal.',
+    pairTitle: 'Koppel deze telefoon', pairHint: 'Typ de zes cijfers van het scherm.', pairCode: 'Koppelcode', pairBtn: 'Koppelen',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'Het thuisnetwerk. Het wachtwoord blijft op het apparaat.', network: 'Netwerknaam', password: 'Wachtwoord', saveWifi: 'Wi‑Fi bewaren',
+    weatherTitle: 'Weer', weatherHint: 'Zoek de plaats die op het papier moet staan.', place: 'Plaats', searchPlaces: 'Plaatsen zoeken', usePlace: 'Deze plaats gebruiken',
+    temperature: 'Temperatuur', hoursAhead: 'Uren vooruit', forecastShape: 'Verwachting', shapeGraph: 'Grafiek', shapeBars: 'Staven', wind: 'Wind', unitTitle: 'Eenheid in de titel tonen',
+    paperTitle: 'Op het papier', paperHint: 'Zet de temperatuur of de verwachting uit.',
+    bottomTitle: 'Onderste rij', bottomHint: 'Zet een vak uit of verplaats het. Omhoog is naar links. De vakken delen de breedte.',
+    blockTemp: 'Temperatuur', blockForecast: 'Verwachting', blockCoffee: 'Koffie', blockRadio: 'Radio',
+    topTitle: 'Balk boven', topHint: 'Weekdag, datum en tijd volgen de tijdzone. Een plaats vult de zone. Omhoog schuift een rij naar links.',
+    timezone: 'Tijdzone', time: 'Tijd', date: 'Datum', weekday: 'Weekdag',
+    tbWeekday: 'Weekdag', tbDate: 'Datum', tbTime: 'Tijd', tbPlace: 'Plaats', tbWifi: 'Wi‑Fi', tbBattery: 'Batterij',
+    tilesTitle: 'Weertegels', rain: 'Regen', press: 'Druk', air: 'Lucht',
+    lookTitle: 'Uiterlijk', lookHint: 'Het papier drukt vier pigmenten: zwart, papier, geel en rood.', yourPlace: 'Jouw plaats', clearSkies: 'Heldere lucht',
+    classic: 'Klassiek', classicHint: 'Zwarte balk, gouden klok', sunset: 'Zonsondergang', sunsetHint: 'Rode balk, gouden klok',
+    ocean: 'Oceaan', oceanHint: 'Zwarte balk, gouden hoogste', marquee: 'Lichtbak', marqueeHint: 'Gouden balk, rode klok',
+    chorus: 'Koor', chorusHint: 'Rode klok, rode tekens', brass: 'Koper', brassHint: 'Gouden balk, zwarte tekst',
+    spotlight: 'Schijnwerper', spotlightHint: 'Rode balk, gouden kaders', custom: 'Eigen', customHint: 'Kies elk pigment',
+    bar: 'Balk', accent: 'Accent', alert: 'Alarm', high: 'Hoog', low: 'Laag',
+    texture: 'Textuur', noise: 'Ruis', dots: 'Stippen', grid: 'Raster', upperTitles: 'Titels in hoofdletters', darkPaper: 'Donker papier',
+    haikuLabel: 'Haiku', haikuDaily: 'Elke dag een nieuwe',
+    borders: 'Kaders', borderForecast: 'Verwachting', borderDegrees: 'Graden', borderSky: 'Luchtregel', borderTiles: 'Weertegels',
+    borderBrew: 'Drank', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Drank', brewHint: 'De woorden op de tegel. Mag elke drank zijn.', tileText: 'Tegeltekst',
+    radioTitle: 'Radio', radioHint: 'De zenders van de ronde knop.', addStation: 'Zender toevoegen', saveChanges: 'Wijzigingen bewaren',
+    remove: 'Weghalen', name: 'Naam', address: 'Adres',
+    paired: 'Gekoppeld. Het bureau is van jou.', loaded: 'Instellingen geladen.', wifiSaved: 'Wi‑Fi op het apparaat bewaard.',
+    typePlace: 'Typ eerst een plaats.', noPlaces: 'Geen plaatsen.', placesCount: '%n plaatsen.', searchNeeds: 'Zoeken heeft internet nodig.',
+    pickPlace: 'Kies een plaats.', placeSaved: '%s bewaard.', savedPaper: 'Bewaard. Het papier ververst.', saving: 'Bezig met bewaren…'
+  },
+  pl: {
+    blurb: 'Panel z radiem jazzowym, pogodą na żywo, licznikiem napojów i codziennym haiku. W pełni do ustawienia, po twojemu.',
+    setupTitle: 'Konfiguracja',
+    settingsTitle: 'Ustawienia',
+    onWord: 'WŁ',
+    helpLabel: 'Pomoc',
+    helpLanguage: 'Papier i ta strona używają tego języka.',
+    helpPair: 'Stuknij dwa razy okrągły przycisk. Papier pokazuje sześć cyfr przez około pięć minut. Dołącz do JazzTrix-Setup i wpisz kod tutaj.',
+    helpWifi: 'Sieć domowa. Po zapisaniu hasło zostaje w urządzeniu. Ta strona go nie trzyma.',
+    helpWeather: 'Pogoda na żywo dla wybranego miejsca. Godziny do przodu to prognoza: 3, 6, 9 albo 12. Rysuje się jako wykres: godziny na dole, temperatury po lewej. Słupki to druga opcja. Wiatr może być w m/s, km/h albo mph.',
+    helpPaper: 'Duża temperatura i prognoza. Wyłącz jedną z nich. Reszta papieru zostaje.',
+    helpBottom: 'Napój, radio i codzienny haiku. Wyłącz pole albo przesuń je. W górę znaczy w lewo, a pola, które zostają, dzielą szerokość. Stuknij znacznik, żeby doliczyć jeden.',
+    helpTop: 'Dzień tygodnia, data, czas, miejsce, Wi-Fi i bateria. W górę przesuwa pozycję w lewo. Zegar idzie za strefą. Wybrane miejsce uzupełnia strefę.',
+    helpTiles: 'Wiatr, deszcz, ciśnienie, powietrze i UV. Wyłącz kafelek albo przesuń go. W górę znaczy w lewo. Kafelki, które zostają, dzielą rząd.',
+    helpLook: 'Motywy, faktura, wielkie litery i ciemny papier. Ciemny papier zamienia czerń i papier. Szkic u góry odpowiada papierowi.',
+    helpHaiku: 'Nowy wiersz każdego lokalnego dnia albo przypnij jeden z 30. Linie zostają po angielsku, żeby zmieściły się w polu.',
+    haikuHint: 'Nowy każdego lokalnego dnia albo wybierz jeden. Wiersze zostają po angielsku.',
+    helpBorders: 'Ramka wokół części papieru. Kafelki, napój, radio i haiku zaczynają w ramce. Prognoza, stopnie i linia nieba zaczynają bez ramki.',
+    helpBrew: 'Słowa na polu napoju. Może to być dowolny napój. Stuknij znacznik na urządzeniu, żeby policzyć jeden. Liczba rośnie, a papier się odświeża.',
+    helpRadio: 'Stacje, które gra okrągły przycisk. Jedno stuknięcie włącza albo wyłącza radio. Krótkie naciśnięcie w górę albo w dół zmienia głośność. Przytrzymaj około dwóch sekund, żeby zmienić stację.',
+    language: 'Język', languageHint: 'Papier i ta strona używają tego języka.',
+    pairTitle: 'Sparuj ten telefon', pairHint: 'Wpisz sześć cyfr z ekranu.', pairCode: 'Kod parowania', pairBtn: 'Sparuj',
+    wifiTitle: 'Wi‑Fi', wifiHint: 'Sieć domowa. Hasło zostaje w urządzeniu.', network: 'Nazwa sieci', password: 'Hasło', saveWifi: 'Zapisz Wi‑Fi',
+    weatherTitle: 'Pogoda', weatherHint: 'Szukaj miejsca, które ma być na papierze.', place: 'Miejsce', searchPlaces: 'Szukaj miejsc', usePlace: 'Użyj tego miejsca',
+    temperature: 'Temperatura', hoursAhead: 'Godziny do przodu', forecastShape: 'Prognoza', shapeGraph: 'Wykres', shapeBars: 'Słupki', wind: 'Wiatr', unitTitle: 'Pokaż jednostkę w tytule',
+    paperTitle: 'Na papierze', paperHint: 'Wyłącz temperaturę albo prognozę.',
+    bottomTitle: 'Dolny rząd', bottomHint: 'Wyłącz pole albo przesuń je. W górę znaczy w lewo. Pola dzielą szerokość.',
+    blockTemp: 'Temperatura', blockForecast: 'Prognoza', blockCoffee: 'Kawa', blockRadio: 'Radio',
+    topTitle: 'Górny pasek', topHint: 'Dzień, data i czas idą za strefą. Wybrane miejsce wypełnia strefę. W górę przesuwa rząd w lewo.',
+    timezone: 'Strefa czasowa', time: 'Czas', date: 'Data', weekday: 'Dzień',
+    tbWeekday: 'Dzień', tbDate: 'Data', tbTime: 'Czas', tbPlace: 'Miejsce', tbWifi: 'Wi‑Fi', tbBattery: 'Bateria',
+    tilesTitle: 'Kafelki pogody', rain: 'Deszcz', press: 'Ciśnienie', air: 'Powietrze',
+    lookTitle: 'Wygląd', lookHint: 'Papier drukuje cztery pigmenty: czerń, papier, żółty i czerwony.', yourPlace: 'Twoje miejsce', clearSkies: 'Pogodne niebo',
+    classic: 'Klasyka', classicHint: 'Czarny pasek, złoty zegar', sunset: 'Zachód', sunsetHint: 'Czerwony pasek, złoty zegar',
+    ocean: 'Ocean', oceanHint: 'Czarny pasek, złote maksimum', marquee: 'Neon', marqueeHint: 'Złoty pasek, czerwony zegar',
+    chorus: 'Chór', chorusHint: 'Czerwony zegar, czerwone znaki', brass: 'Blacha', brassHint: 'Złoty pasek, czarny tekst',
+    spotlight: 'Reflektor', spotlightHint: 'Czerwony pasek, złote ramki', custom: 'Własny', customHint: 'Wybierz każdy pigment',
+    bar: 'Pasek', accent: 'Akcent', alert: 'Alarm', high: 'Maks.', low: 'Min.',
+    texture: 'Faktura', noise: 'Szum', dots: 'Kropki', grid: 'Siatka', upperTitles: 'Tytuły wielkimi literami', darkPaper: 'Ciemny papier',
+    haikuLabel: 'Haiku', haikuDaily: 'Nowy co dzień',
+    borders: 'Ramki', borderForecast: 'Prognoza', borderDegrees: 'Stopnie', borderSky: 'Linia nieba', borderTiles: 'Kafelki pogody',
+    borderBrew: 'Napój', borderRadio: 'Radio', borderHaiku: 'Haiku',
+    brewTitle: 'Napój', brewHint: 'Słowa na kafelku. Może być dowolny napój.', tileText: 'Tekst kafelka',
+    radioTitle: 'Radio', radioHint: 'Stacje okrągłego przycisku.', addStation: 'Dodaj stację', saveChanges: 'Zapisz zmiany',
+    remove: 'Usuń', name: 'Nazwa', address: 'Adres',
+    paired: 'Sparowano. Biurko jest twoje.', loaded: 'Ustawienia wczytane.', wifiSaved: 'Wi‑Fi zapisane w urządzeniu.',
+    typePlace: 'Najpierw wpisz miejsce.', noPlaces: 'Brak miejsc.', placesCount: '%n miejsc.', searchNeeds: 'Wyszukiwanie potrzebuje internetu.',
+    pickPlace: 'Wybierz miejsce.', placeSaved: 'Zapisano %s.', savedPaper: 'Zapisano. Papier się odświeży.', saving: 'Zapisywanie…'
+  }
+};
+let lang = 'en';
+function t(key) {
+  return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+}
+function applyLang() {
+  const chosen = document.getElementById('language').value || 'en';
+  lang = I18N[chosen] ? chosen : 'en';
+  document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
+  document.documentElement.dir = 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const s = t(el.dataset.i18n);
+    if (s) el.textContent = s;
+  });
+  document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+    const s = t(el.dataset.i18nAria);
+    if (s) el.setAttribute('aria-label', s);
+  });
+  const blurb = document.getElementById('blurb');
+  if (blurb) blurb.textContent = t('blurb');
+  const word = document.body.classList.contains('locked')
+    ? (t('setupTitle') || 'Setup')
+    : (t('settingsTitle') || 'Settings');
+  const pageWord = document.getElementById('pageWord');
+  if (pageWord) pageWord.textContent = word;
+  const live = document.getElementById('prevLive');
+  if (live) live.textContent = 'JAZZ / ' + (t('onWord') || 'ON');
+  document.title = 'JazzTrix — ' + word;
+}
+async function pushLocale() {
+  const locale = document.getElementById('language').value || 'en';
+  try {
+    await api('/api/locale', { method: 'POST', headers: hdr(), body: JSON.stringify({ locale }) });
+  } catch (e) {}
+}
+document.getElementById('language').addEventListener('change', () => {
+  localStorage.setItem('jazztrixLang', document.getElementById('language').value);
+  paint();
+  pushLocale();
+});
+const storedLang = localStorage.getItem('jazztrixLang');
+if (storedLang && I18N[storedLang]) document.getElementById('language').value = storedLang;
+setStations();
+gate();
+paint();
+if (token) load();
+else document.getElementById('pair').focus();
+</script>
+</body>
+</html>

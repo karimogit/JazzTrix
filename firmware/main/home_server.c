@@ -12,6 +12,7 @@
 #include "esp_http_server.h"
 #include "esp_timer.h"
 #include "esp_random.h"
+#include "esp_log.h"
 #include "esp_heap_caps.h"
 #include "esp_app_desc.h"
 #include <stdio.h>
@@ -23,6 +24,7 @@
     extern const uint8_t n##_start[] asm("_binary_" s "_start");                                   \
     extern const uint8_t n##_end[] asm("_binary_" s "_end")
 EMBED(index_html, "index_html");
+static const char *TAG = "home_server";
 static httpd_handle_t server;
 static unsigned pair_attempts;
 static int64_t attempt_window;
@@ -699,11 +701,10 @@ static esp_err_t api_inner(httpd_req_t *r)
                 break;
             }
         if (slot < 0) {
-            home_unlock();
-            memset(&s, 0, sizeof(s));
-            memset(text, 0, sizeof(text));
-            result = error(r, "409 Conflict", "pairing_limit_reached");
-            goto done;
+            slot = 0;
+            ESP_LOGW(TAG, "Pairing slots full; replacing slot 0");
+            memset(s.token_hash[0], 0, 32);
+            s.token_used[0] = 0;
         }
         cJSON *out = cJSON_CreateObject();
         char *encoded = NULL;

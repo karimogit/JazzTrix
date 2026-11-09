@@ -34,7 +34,9 @@ The home network name and password are stored only in the device’s `home_nvs` 
 | Side Up / Down, short | Volume |
 | Side Up / Down, hold (~2 s) | Next / previous station |
 | Side Up and Down together, hold (~2 s) | Restart the device |
-| NFC tap | Count, chime, and refresh the tile |
+| Phone NFC on the desk | Add one to the brew count, chime, and refresh the tile |
+
+Hold the back of your phone on the JazzTrix until it responds. Each tap adds one to the brew box (for example **Coffee** on the paper). The setup page only changes the words on that tile; it does not change the count.
 
 The paper redraws on its own at most every four hours, and not between 00:00 and 06:00 local time. Coffee, radio, setup, and a triple-tap still refresh.
 
@@ -48,14 +50,14 @@ Setup stores these choices on the device:
 - **Unit suffix:** optional, for example `Wind (m/s)` or `Press (hPa)`.
 - **Titles:** box titles are uppercase. The setup page can leave them as written.
 - **Wind:** m/s, km/h, or mph. The number changes with the unit.
-- **Blocks:** temperature, forecast, NFC counter, and radio. Each can be turned off. The forecast is a graph, with every hour in the window labeled along the bottom. The left side shows at most four temperatures, stepped so they stay apart. Bars are the other choice. It can show 3, 6, 9, or 12 hours ahead.
+- **Blocks:** temperature, forecast, brew counter, and radio. Each can be turned off. The forecast is a graph, with every hour in the window labeled along the bottom. The left side shows at most four temperatures, stepped so they stay apart. Bars are the other choice. It can show 3, 6, 9, or 12 hours ahead.
 - **Borders:** on or off around the forecast, the temperature, the sky line (the icon and the condition), the weather tiles, the brew count, the radio, and the haiku. Tiles, brew, radio, and the haiku start with a border. The forecast, the temperature, and the sky line start without one.
 - **Bottom row:** the brew count, the radio, and a haiku. Each one can be turned off, and the row can be reordered. The boxes that stay on share the width, so one box fills the row and three keep the usual narrow brew, wider radio, and widest haiku. There are 30. By default the paper shows a new one each local day and keeps it until the next day. The Haiku section can pin one instead. The box is titled Haiku. Each poem is two lines, at most 22 characters, so it stays in English and inside the box. The radio title stays Radio. Its line reads the station name with ON or OFF. A long title or line is cut off at the box.
 - **Language:** English, Spanish, Chinese, German, French, Italian, Portuguese, Dutch, and Polish. The page and the paper follow it as soon as you change it. The pairing page is titled Setup, and the page is titled Settings once the phone is paired. The page shows v1.0 at the bottom. The paper shows v1.0 in the pairing bar, next to the word Setup. The version is not on the dashboard.
 - **Themes:** Classic, Sunset, Ocean, Marquee, Chorus, Brass, Spotlight, or custom pigments. NOTE4C has four pigments: black, paper, yellow, and red. NOTE4 is black and white; yellow and red are drawn as black. The device recognizes which paper it has. The setup page can force NOTE4 or NOTE4C if that guess is wrong.
 - **Dark mode:** swaps paper and black.
 - **Radio stations:** from an M3U or PLS list, or from URLs.
-- **NFC counter:** the text on the tile.
+- **Brew counter:** a running total on the paper. Tap your phone on the desk to add one. The title is your choice, such as Coffee or Tea, in the Brew section of setup.
 
 ## Build
 

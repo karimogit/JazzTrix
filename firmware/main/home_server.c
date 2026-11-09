@@ -12,6 +12,7 @@
 #include "jazztrix_settings.h"
 #include "esp_http_server.h"
 #include "esp_timer.h"
+#include "freertos/task.h"
 #include "esp_random.h"
 #include "esp_log.h"
 #include "esp_heap_caps.h"
@@ -395,6 +396,111 @@ static esp_err_t status(httpd_req_t *r, int token)
     }
     return json_send(r, j);
 }
+/* Geocoding must not run on the HTTP task: that stack is 16 KiB and one handler blocks every
+ * other request. A short-lived task owns the TLS fetch. The page polls until it is ready. */
+static char geo_name[65];
+static unsigned geo_count;
+static char *geo_json;
+static int geo_state; /* 0 idle, 1 running, 2 ready, 3 error */
+
+static bool geo_copy_string(cJSON *item, const char *key, const cJSON *src, size_t max)
+{
+    if (!cJSON_IsString(src) || !src->valuestring[0] || !home_utf8(src->valuestring, max, false))
+        return true;
+    return cJSON_AddStringToObject(item, key, src->valuestring);
+}
+static char *compact_geocode(const char *body, size_t size)
+{
+    cJSON *root = cJSON_ParseWithLength(body, size);
+    cJSON *out = cJSON_CreateObject();
+    cJSON *arr = cJSON_AddArrayToObject(out, "results");
+    bool ok = root && out && arr && cJSON_AddStringToObject(out, "state", "ready");
+    cJSON *results = ok ? cJSON_GetObjectItemCaseSensitive(root, "results") : NULL;
+    if (ok && cJSON_IsArray(results)) {
+        int n = 0;
+        cJSON *p;
+        cJSON_ArrayForEach(p, results)
+        {
+            if (n >= 12)
+                break;
+            cJSON *name = cJSON_GetObjectItemCaseSensitive(p, "name");
+            cJSON *lat = cJSON_GetObjectItemCaseSensitive(p, "latitude");
+            cJSON *lon = cJSON_GetObjectItemCaseSensitive(p, "longitude");
+            if (!cJSON_IsString(name) || !name->valuestring[0] ||
+                !home_utf8(name->valuestring, 64, false) || !cJSON_IsNumber(lat) ||
+                !cJSON_IsNumber(lon) || lat->valuedouble < -90 || lat->valuedouble > 90 ||
+                lon->valuedouble < -180 || lon->valuedouble > 180)
+                continue;
+            cJSON *item = cJSON_CreateObject();
+            cJSON *tz = cJSON_GetObjectItemCaseSensitive(p, "timezone");
+            const char *zone = cJSON_IsString(tz) ? home_timezone_lookup(tz->valuestring) : NULL;
+            ok = item && cJSON_AddStringToObject(item, "name", name->valuestring) &&
+                 cJSON_AddNumberToObject(item, "latitude", lat->valuedouble) &&
+                 cJSON_AddNumberToObject(item, "longitude", lon->valuedouble) &&
+                 (!zone || cJSON_AddStringToObject(item, "timezone", zone)) &&
+                 geo_copy_string(item, "admin1", cJSON_GetObjectItemCaseSensitive(p, "admin1"),
+                                 64) &&
+                 geo_copy_string(item, "country", cJSON_GetObjectItemCaseSensitive(p, "country"),
+                                 64) &&
+                 cJSON_AddItemToArray(arr, item);
+            if (!ok) {
+                cJSON_Delete(item);
+                break;
+            }
+            n++;
+        }
+    }
+    char *text = ok ? cJSON_PrintUnformatted(out) : NULL;
+    cJSON_Delete(root);
+    cJSON_Delete(out);
+    return text;
+}
+static void geo_task(void *arg)
+{
+    char name[65];
+    unsigned count;
+    (void)arg;
+    home_lock();
+    snprintf(name, sizeof name, "%s", geo_name);
+    count = geo_count;
+    home_unlock();
+    char *body = NULL;
+    size_t size = 0;
+    esp_err_t e = home_fetch_geocode(name, count, &body, &size);
+    char *compact = e == ESP_OK && body ? compact_geocode(body, size) : NULL;
+    free(body);
+    home_lock();
+    if (!strcmp(geo_name, name) && geo_count == count && geo_state == 1) {
+        free(geo_json);
+        geo_json = compact;
+        geo_state = compact ? 2 : 3;
+        compact = NULL;
+    }
+    home_unlock();
+    free(compact);
+    vTaskDelete(NULL);
+}
+static bool geo_start(const char *name, unsigned count)
+{
+    snprintf(geo_name, sizeof geo_name, "%s", name);
+    geo_count = count;
+    free(geo_json);
+    geo_json = NULL;
+    geo_state = 1;
+    if (xTaskCreate(geo_task, "geo", 24576, NULL, 4, NULL) == pdPASS)
+        return true;
+    geo_state = 3;
+    return false;
+}
+static esp_err_t places_state(httpd_req_t *r, const char *state)
+{
+    cJSON *j = cJSON_CreateObject();
+    if (!cJSON_AddStringToObject(j, "state", state)) {
+        cJSON_Delete(j);
+        j = NULL;
+    }
+    return json_send(r, j);
+}
 static int query_screen(httpd_req_t *r)
 {
     char q[96], s[16];
@@ -421,21 +527,36 @@ static esp_err_t places_search(httpd_req_t *r)
     }
     home_lock();
     bool online = home_runtime.online;
-    home_unlock();
+    bool same = !strcmp(geo_name, name) && geo_count == count;
+    int state = geo_state;
+    char *ready = NULL;
     if (!online)
-        return error(r, "503 Service Unavailable", "Device is offline");
-    char *body = NULL;
-    size_t size = 0;
-    esp_err_t e = home_fetch_geocode(name, count, &body, &size);
-    if (e != ESP_OK || !body) {
-        free(body);
-        return error(r, "502 Bad Gateway", "Place search failed");
+        state = -1;
+    else if (state == 1 && same)
+        state = 1;
+    else if (state == 1)
+        state = 4; /* another search is already running */
+    else if (state == 2 && same && geo_json)
+        ready = strdup(geo_json);
+    if (online && !ready && state != 1 && state != 4) {
+        if (!geo_start(name, count))
+            state = 3;
+        else
+            state = 1;
     }
-    httpd_resp_set_type(r, "application/json");
-    httpd_resp_set_hdr(r, "Cache-Control", "no-store");
-    esp_err_t sent = httpd_resp_send(r, body, (ssize_t)size);
-    free(body);
-    return sent;
+    home_unlock();
+    if (state < 0)
+        return error(r, "503 Service Unavailable", "Device is offline");
+    if (ready) {
+        esp_err_t sent = json_text(r, ready);
+        free(ready);
+        return sent;
+    }
+    if (state == 3)
+        return places_state(r, "error");
+    if (state == 4)
+        return places_state(r, "busy");
+    return places_state(r, "searching");
 }
 static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed, bool sharing)
 {
@@ -707,7 +828,7 @@ static esp_err_t api_inner(httpd_req_t *r)
         }
         if (esp_timer_get_time() >= home_runtime.pair_until || pair_attempts >= 5) {
             home_unlock();
-            result = error(r, "429 Too Many Requests", "Double-tap the round button to open setup again");
+            result = error(r, "429 Too Many Requests", "Hold the round button to open setup again");
             goto done;
         }
         pair_attempts++;

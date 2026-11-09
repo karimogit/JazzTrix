@@ -2790,7 +2790,7 @@ static void draw_top_bar(canvas_t *c, const home_config_t *cfg, const jazztrix_s
     else
         snprintf(batt, sizeof batt, "—");
     char place[65];
-    snprintf(place, sizeof place, "%s", cfg->location[0] ? cfg->location : "Double-tap setup");
+    snprintf(place, sizeof place, "%s", cfg->location[0] ? cfg->location : "Hold for setup");
     bar_slot_t slot[JAZZTRIX_BAR_SLOTS];
     int n = 0;
     for (int s = 0; s < JAZZTRIX_BAR_SLOTS; s++) {

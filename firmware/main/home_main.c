@@ -160,7 +160,7 @@ static int round_tap_count;
 static int64_t round_tap_at;
 static void action(int key);
 
-/* Two quick taps on the round button: redraw only, no radio toggle and no download. */
+/* Three or more quick taps on the round button: redraw only, no radio toggle and no download. */
 static void desk_screen_only(void)
 {
     home_lock();

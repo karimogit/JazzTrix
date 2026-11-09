@@ -14,7 +14,7 @@ A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A 
 
 ## Setup
 
-Double-tap the round button. The display opens a setup window for about five minutes and shows a pairing code.
+Hold the round button for about two seconds. The display opens a setup window for about five minutes and shows a pairing code. Hold again for about two seconds to close setup before the window ends. You can also open setup with two quick taps on the round button (within about half a second).
 
 1. Join the Wi-Fi network **JazzTrix-Setup**.
 2. Open `http://192.168.4.1`.
@@ -29,8 +29,9 @@ The home network name and password are stored only in the device’s `home_nvs` 
 | Control | Action |
 | --- | --- |
 | Round button, 1 tap | Radio on / off |
-| Round button, 2 taps | Open setup |
-| Round button, 3 taps | Refresh the screen only |
+| Round button, hold (~2 s) | Open setup (hold again ~2 s to close while the window is open) |
+| Round button, 2 quick taps | Open setup |
+| Round button, 3 quick taps | Refresh the screen only |
 | Side Up / Down, short | Volume |
 | Side Up / Down, hold (~2 s) | Next / previous station |
 | Side Up and Down together, hold (~2 s) | Restart the device |
@@ -44,7 +45,7 @@ The paper redraws on its own at most every four hours, and not between 00:00 and
 
 Setup stores these choices on the device:
 
-- **Weather place:** search (via the device when it is on home Wi‑Fi, or the phone when it has internet), quick-pick cities, or manual coordinates — all from the setup page, including on **JazzTrix-Setup** with no phone data.
+- **Weather place:** search (via the device when it is on home Wi‑Fi, or the phone when it has internet), quick-pick cities (with latitude, longitude, and time zone, no internet), or manual coordinates — all from the setup page, including on **JazzTrix-Setup** with no phone data.
 - **Top bar:** order and visibility for weekday, date, time, place, Wi-Fi, and battery. Each one has a switch. The clock follows the place’s time zone. Date format, 12 or 24 hour time, and the time zone can be changed in setup.
 - **Metric tiles:** Wind, Rain, Press, Air, and UV. Each tile can be shown or hidden, and the row can be reordered.
 - **Unit suffix:** optional, for example `Wind (m/s)` or `Press (hPa)`.

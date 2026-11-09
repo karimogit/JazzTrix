@@ -555,7 +555,7 @@ const I18N = {
     pairTitle: 'Pair this phone', pairHint: 'Type the six digits on the display.', pairCode: 'Pairing code', pairBtn: 'Pair',
     wifiTitle: 'Wi‑Fi', wifiHint: 'The home network. The password stays on the device.', network: 'Network name', password: 'Password', saveWifi: 'Save Wi‑Fi',
     weatherTitle: 'Weather', weatherHint: 'Search, pick a quick city, or open Coordinates. Search uses the device when it is on home Wi‑Fi.', place: 'Place', searchPlaces: 'Search places', usePlace: 'Use this place',
-    quickPicks: 'Quick picks (no internet)', manualTitle: 'Coordinates', manualHint: 'Works on JazzTrix-Setup without internet. The name is what appears on the paper.',
+    quickPicks: 'Quick picks (no internet). Tap a city, then Use this place. The time zone updates with the city.', manualTitle: 'Coordinates', manualHint: 'Works on JazzTrix-Setup without internet. The name is what appears on the paper.',
     manualName: 'Name on paper', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Use these coordinates',
     temperature: 'Temperature', hoursAhead: 'Hours ahead', forecastShape: 'Forecast', shapeGraph: 'Graph', shapeBars: 'Bars', wind: 'Wind', unitTitle: 'Show the unit in the title',
     paperTitle: 'On the paper', paperHint: 'Turn the temperature or the forecast off.',
@@ -1630,6 +1630,18 @@ const OFFLINE_CITIES = [
 function placeLabel(p) {
   return p.name + (p.admin1 ? ', ' + p.admin1 : '') + (p.country ? ', ' + p.country : '');
 }
+function applyPlaceTimezone(tz) {
+  if (!tz) return;
+  const tzSel = document.getElementById('timezone');
+  if (![...tzSel.options].some(o => o.value === tz)) {
+    const o = document.createElement('option');
+    o.value = tz;
+    o.textContent = tz;
+    tzSel.appendChild(o);
+  }
+  tzSel.value = tz;
+  if (typeof paint === 'function') paint();
+}
 function setPlaceResults(list) {
   const sel = document.getElementById('places');
   sel.replaceChildren();
@@ -1658,14 +1670,7 @@ async function saveWeatherPlace(p) {
   const tz = p.timezone || document.getElementById('timezone').value;
   if (tz) {
     cfg.timezone = tz;
-    const tzSel = document.getElementById('timezone');
-    if (![...tzSel.options].some(o => o.value === tz)) {
-      const o = document.createElement('option');
-      o.value = tz;
-      o.textContent = tz;
-      tzSel.appendChild(o);
-    }
-    tzSel.value = tz;
+    applyPlaceTimezone(tz);
   }
   cfg.units = document.getElementById('units').value;
   cfg.clock24 = document.getElementById('clock24').value === '1';
@@ -1683,6 +1688,7 @@ async function saveWeatherPlace(p) {
       document.getElementById('place').value = c.name;
       setPlaceResults([c]);
       document.getElementById('places').selectedIndex = 0;
+      applyPlaceTimezone(c.timezone);
       status(placeLabel(c), true);
     };
     box.appendChild(b);
@@ -1713,10 +1719,20 @@ document.getElementById('searchBtn').onclick = async () => {
     if (!results.length) status(tr('noPlaces'), false);
     else {
       document.getElementById('places').selectedIndex = 0;
+      try {
+        applyPlaceTimezone(JSON.parse(document.getElementById('places').value).timezone);
+      } catch (e) {}
       status(tr('placesCount').replace('%n', results.length), true);
     }
   } catch (e) { status(tr('searchNeeds'), false); }
 };
+document.getElementById('places').addEventListener('change', () => {
+  const sel = document.getElementById('places');
+  if (!sel.value) return;
+  try {
+    applyPlaceTimezone(JSON.parse(sel.value).timezone);
+  } catch (e) {}
+});
 document.getElementById('locBtn').onclick = async () => {
   try {
     const sel = document.getElementById('places');

@@ -3,7 +3,7 @@
 A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.
 
 <p align="center">
-  <img src="docs/jazztrix.png" alt="JazzTrix showing the weather, forecast, brew count, radio, and haiku" width="420">
+  <img src="docs/jazztrix.png" alt="JazzTrix showing the weather, forecast, brew count, radio, and haiku">
 </p>
 
 ## Requirements

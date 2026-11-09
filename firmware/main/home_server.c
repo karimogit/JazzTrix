@@ -5,6 +5,7 @@
 #include "esp_pm.h"
 #endif
 #include "home_config.h"
+#include "home_fetch.h"
 #include "home_places.h"
 #include "home_wake.h"
 #include "jazztrix_product.h"
@@ -403,6 +404,39 @@ static int query_screen(httpd_req_t *r)
         return -1;
     return home_screen_index(s);
 }
+static esp_err_t places_search(httpd_req_t *r)
+{
+    char q[512], name[96], count_s[8];
+    if (httpd_req_get_url_query_str(r, q, sizeof q) != ESP_OK)
+        return error(r, "400 Bad Request", "Missing query");
+    if (httpd_query_key_value(q, "name", name, sizeof name) != ESP_OK || !name[0])
+        return error(r, "400 Bad Request", "Place name required");
+    if (!home_utf8(name, 64, false))
+        return error(r, "400 Bad Request", "Invalid place name");
+    unsigned count = 8;
+    if (httpd_query_key_value(q, "count", count_s, sizeof count_s) == ESP_OK) {
+        int n = atoi(count_s);
+        if (n >= 1 && n <= 12)
+            count = (unsigned)n;
+    }
+    home_lock();
+    bool online = home_runtime.online;
+    home_unlock();
+    if (!online)
+        return error(r, "503 Service Unavailable", "Device is offline");
+    char *body = NULL;
+    size_t size = 0;
+    esp_err_t e = home_fetch_geocode(name, count, &body, &size);
+    if (e != ESP_OK || !body) {
+        free(body);
+        return error(r, "502 Bad Gateway", "Place search failed");
+    }
+    httpd_resp_set_type(r, "application/json");
+    httpd_resp_set_hdr(r, "Cache-Control", "no-store");
+    esp_err_t sent = httpd_resp_send(r, body, (ssize_t)size);
+    free(body);
+    return sent;
+}
 static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed, bool sharing)
 {
     int screen = query_screen(r);
@@ -538,6 +572,8 @@ static esp_err_t api_inner(httpd_req_t *r)
 #endif
         if (!strcmp(path, "/api/timezones"))
             return json_send(r, home_timezones_json());
+        if (!strcmp(path, "/api/places/search"))
+            return places_search(r);
         if (!strcmp(path, "/api/location"))
             return json_send(r, home_network_location_json());
         if (!strcmp(path, "/api/config") || !strcmp(path, "/api/recipe")) {

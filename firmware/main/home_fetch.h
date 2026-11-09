@@ -17,4 +17,6 @@ esp_err_t home_fetch_air(const home_config_t*,home_air_t*,int64_t now);
 /* Explicit area lookup only; fixed FreeIPAPI hostname, same verified transport.
  * Single source-worker caller. Caller zeroes/frees the bounded JSON body. */
 esp_err_t home_fetch_location(char **json,size_t *size);
+/* Open-Meteo geocoding for the setup page. Host-locked; bounded JSON body. */
+esp_err_t home_fetch_geocode(const char *name, unsigned count, char **json, size_t *size);
 #endif

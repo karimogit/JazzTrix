@@ -5,7 +5,7 @@
 #include <time.h>
 #include "cJSON.h"
 
-/* Time-zone catalogue only. Location is selected automatically by the phone. */
+/* Time-zone catalogue. Weather place is set from the setup page (search, quick picks, or coordinates). */
 cJSON *home_timezones_json(void);
 
 /* Existence/canonical-name lookup ONLY. Never pass this result to setenv(TZ).

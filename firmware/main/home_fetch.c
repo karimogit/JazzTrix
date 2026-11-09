@@ -783,6 +783,66 @@ esp_err_t home_fetch_location(char **json, size_t *size)
     }
     return e;
 }
+static size_t url_encode_query(const char *in, char *out, size_t cap)
+{
+    static const char hex[] = "0123456789ABCDEF";
+    size_t n = 0;
+    for (const unsigned char *p = (const unsigned char *)in; *p; p++) {
+        unsigned char c = *p;
+        if ((c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' ||
+            c == '_' || c == '.' || c == '~') {
+            if (n + 1 >= cap)
+                return 0;
+            out[n++] = (char)c;
+        } else if (c == ' ') {
+            if (n + 1 >= cap)
+                return 0;
+            out[n++] = '+';
+        } else {
+            if (n + 3 >= cap)
+                return 0;
+            out[n++] = '%';
+            out[n++] = hex[c >> 4];
+            out[n++] = hex[c & 15];
+        }
+    }
+    if (n >= cap)
+        return 0;
+    out[n] = 0;
+    return n;
+}
+esp_err_t home_fetch_geocode(const char *name, unsigned count, char **json, size_t *size)
+{
+    if (!json || !size || !name || !name[0])
+        return ESP_ERR_INVALID_ARG;
+    if (count < 1)
+        count = 1;
+    if (count > 12)
+        count = 12;
+    char encoded[192];
+    if (!url_encode_query(name, encoded, sizeof encoded))
+        return ESP_ERR_INVALID_SIZE;
+    char url[448];
+    int length =
+        snprintf(url, sizeof url,
+                 "https://geocoding-api.open-meteo.com/v1/search?name=%s&count=%u&language=en&"
+                 "format=json",
+                 encoded, count);
+    if (length < 0 || length >= (int)sizeof url)
+        return ESP_ERR_INVALID_SIZE;
+    home_source_meta_t no_validators = {0};
+    headers_t h = {0};
+    esp_err_t e =
+        fetch_scoped(url, &no_validators, &h, json, size, "geocoding-api.open-meteo.com");
+    if (e == ESP_OK && (h.status != 200 || !*json || *size > 65536))
+        e = ESP_ERR_INVALID_SIZE;
+    if (e != ESP_OK && *json) {
+        free(*json);
+        *json = NULL;
+        *size = 0;
+    }
+    return e;
+}
 typedef struct {
     bool no_store, revalidate, has_max, invalid;
     uint64_t max_age;

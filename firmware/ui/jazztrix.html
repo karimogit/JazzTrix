@@ -234,6 +234,11 @@
   .pig-row { margin-top: .55rem; }
   .pig-row span { display: block; font-size: .78rem; font-weight: 700; margin-bottom: .25rem; }
   select.places { width: 100%; margin-top: .5rem; border-radius: 12px; border: 1px solid var(--line); background: #fff; min-height: 6.5rem; font: inherit; padding: .3rem; }
+  details.coords { margin-top: .85rem; border: 1px solid var(--line); border-radius: 12px; padding: .55rem .65rem; background: #fff; }
+  details.coords summary { cursor: pointer; font-weight: 800; font-size: .88rem; }
+  details.coords .hint { margin-top: .45rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .45rem; }
+  .chips button { font: inherit; font-size: .78rem; font-weight: 700; padding: .35rem .55rem; border-radius: 999px; border: 1px solid var(--line); background: #fff; color: var(--ink); }
   .savebar {
     position: fixed; left: 0; right: 0; bottom: 0;
     padding: .8rem 1.35rem calc(.85rem + env(safe-area-inset-bottom));
@@ -310,6 +315,16 @@
     <button type="button" class="ghost" id="searchBtn" data-i18n="searchPlaces">Search places</button>
     <select id="places" class="places" size="4"></select>
     <button type="button" class="action" id="locBtn" data-i18n="usePlace">Use this place</button>
+    <p class="hint" data-i18n="quickPicks">Quick picks (no internet)</p>
+    <div class="chips" id="quickPicks"></div>
+    <details class="coords" id="coordBox">
+      <summary data-i18n="manualTitle">Coordinates</summary>
+      <p class="hint" data-i18n="manualHint">Works on JazzTrix-Setup without internet. The name is what appears on the paper.</p>
+      <label class="field"><span data-i18n="manualName">Name on paper</span><input id="manualName" type="text" maxlength="64" placeholder="Home"></label>
+      <label class="field"><span data-i18n="latitude">Latitude</span><input id="manualLat" type="text" inputmode="decimal" placeholder="52.37"></label>
+      <label class="field"><span data-i18n="longitude">Longitude</span><input id="manualLon" type="text" inputmode="decimal" placeholder="4.89"></label>
+      <button type="button" class="ghost" id="manualBtn" data-i18n="useManual">Use these coordinates</button>
+    </details>
     <label class="field"><span data-i18n="temperature">Temperature</span>
       <select id="units" hidden><option value="C">°C</option><option value="F">°F</option></select>
       <div class="seg" data-for="units"><button type="button" data-v="C">°C</button><button type="button" data-v="F">°F</button></div>
@@ -514,691 +529,7 @@ function gate() {
   document.body.classList.toggle('locked', !token);
   if (typeof applyLang === 'function') applyLang();
 }
-function paintSegs() {
-  document.querySelectorAll('.seg').forEach(seg => {
-    const v = document.getElementById(seg.dataset.for).value;
-    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  });
-}
-function paintOrder(listId, inputId) {
-  const list = document.getElementById(listId);
-  parseOrder(document.getElementById(inputId).value).forEach(id => {
-    const el = list.querySelector('[data-id="' + id + '"]');
-    if (el) list.appendChild(el);
-  });
-}
-function writeOrder(list) {
-  const ids = { toolbarList: 'toolbarOrder', metricList: 'metricOrder', footList: 'footOrder' };
-  const input = document.getElementById(ids[list.id]);
-  input.value = [...list.querySelectorAll('.line')].map(el => el.dataset.id).join(',');
-}
-const THEMES = {
-  '0': { bar: 0, clock: 2, frame: 0, hi: 3, accent: 2, alert: 3 },
-  '1': { bar: 3, clock: 2, frame: 3, hi: 3, accent: 2, alert: 3 },
-  '2': { bar: 0, clock: 2, frame: 0, hi: 2, accent: 2, alert: 3 },
-  '4': { bar: 2, clock: 3, frame: 3, hi: 3, accent: 2, alert: 3 },
-  '5': { bar: 0, clock: 3, frame: 3, hi: 3, accent: 3, alert: 3 },
-  '6': { bar: 2, clock: 0, frame: 2, hi: 3, accent: 2, alert: 3 },
-  '7': { bar: 3, clock: 2, frame: 2, hi: 2, accent: 2, alert: 3 }
-};
-function paintTheme() {
-  const theme = document.getElementById('themePreset').value;
-  document.querySelectorAll('.theme').forEach(b => b.classList.toggle('on', b.dataset.theme === theme));
-  document.getElementById('customColors').classList.toggle('off', theme !== '3');
-  document.querySelectorAll('.pigs').forEach(group => {
-    const v = document.getElementById(group.dataset.for).value;
-    group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
-  });
-  const spec = theme === '3' ? {
-    bar: +document.getElementById('colorBar').value,
-    clock: +document.getElementById('colorAccent').value,
-    frame: +document.getElementById('colorAlert').value,
-    hi: +document.getElementById('colorHi').value,
-    accent: +document.getElementById('colorAccent').value,
-    alert: +document.getElementById('colorAlert').value
-  } : (THEMES[theme] || THEMES['0']);
-  const dark = document.getElementById('darkMode').checked;
-  const paper = dark ? INK[0] : INK[1];
-  const ink = dark ? INK[1] : INK[0];
-  const preview = document.getElementById('preview');
-  preview.style.background = paper;
-  preview.style.color = ink;
-  const bar = INK[spec.bar] || INK[0];
-  const barEl = preview.querySelector('.bar');
-  barEl.style.background = bar === paper ? ink : bar;
-  const barInk = (spec.bar === 1 || spec.bar === 2) ? INK[0] : INK[1];
-  barEl.style.color = barInk === barEl.style.background ? (dark ? INK[0] : INK[1]) : barInk;
-  const clk = preview.querySelector('.clk');
-  clk.style.color = INK[spec.clock] === barEl.style.background ? barEl.style.color : INK[spec.clock];
-  const when = preview.querySelector('.when');
-  if (when) when.style.color = clk.style.color;
-  preview.querySelector('.temp').style.color = ink;
-  preview.querySelector('.hi').style.color = INK[spec.hi] === paper ? ink : INK[spec.hi];
-  const lo = preview.querySelector('.lo');
-  if (lo) lo.style.color = ink;
-  const frameInk = INK[spec.frame];
-  ['prevDegrees', 'prevSky'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.style.borderColor = el.classList.contains('boxed') ? frameInk : 'transparent';
-    el.style.color = ink;
-  });
-  const forecast = preview.querySelector('.forecast');
-  if (forecast) {
-    forecast.style.borderColor = forecast.classList.contains('boxed') ? frameInk : 'transparent';
-    forecast.style.color = ink;
-    const temps = [16, 17, 18, 18, 19, 20, 21, 20, 19, 18, 17, 16];
-    forecast.querySelectorAll('i').forEach((bar, i) => {
-      const t = temps[i] || 16;
-      bar.style.background = t >= 20 ? INK[3] : t >= 18 ? INK[2] : (dark ? INK[1] : INK[0]);
-    });
-    const stroke = forecast.querySelector('polyline');
-    const area = forecast.querySelector('polygon');
-    if (stroke) stroke.setAttribute('stroke', ink);
-    if (area) area.setAttribute('fill', INK[2]);
-    forecast.querySelectorAll('circle').forEach(dot => dot.setAttribute('fill', ink));
-  }
-  preview.querySelectorAll('.tile').forEach(tile => {
-    const boxed = tile.classList.contains('boxed');
-    tile.style.borderColor = boxed ? frameInk : 'transparent';
-    tile.style.color = ink;
-    tile.style.background = boxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
-  });
-  const cup = preview.querySelector('.cup');
-  const alert = INK[spec.alert];
-  const cupBoxed = cup.classList.contains('boxed');
-  cup.style.background = cupBoxed ? alert : 'transparent';
-  cup.style.color = cupBoxed ? (alert === INK[1] || alert === INK[2] ? INK[0] : INK[1]) : ink;
-  const on = preview.querySelector('.on');
-  const onBoxed = on.classList.contains('boxed');
-  on.style.background = onBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
-  on.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
-  on.style.border = onBoxed ? '1px solid ' + frameInk : '1px solid transparent';
-  const poem = preview.querySelector('.poem');
-  if (poem) {
-    const poemBoxed = poem.classList.contains('boxed');
-    poem.style.background = poemBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
-    poem.style.color = ink;
-    poem.style.border = poemBoxed ? '1px solid ' + frameInk : '1px solid transparent';
-    const poemTitle = poem.querySelector('span');
-    if (poemTitle)
-      poemTitle.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
-  }
-}
-const RADIO_MAX = 8;
-function stationRow(name, url) {
-  const el = document.createElement('article');
-  el.className = 'station';
-  el.innerHTML =
-    '<div class="station-top"><button type="button" class="nudge" data-dir="-1" aria-label="Move station up">↑</button>' +
-    '<button type="button" class="nudge" data-dir="1" aria-label="Move station down">↓</button>' +
-    '<b class="idx"></b><button type="button" class="drop" data-i18n="remove">Remove</button></div>' +
-    '<label class="field"><span data-i18n="name">Name</span><input class="st-name" type="text" maxlength="23"></label>' +
-    '<label class="field"><span data-i18n="address">Address</span><textarea class="st-url" maxlength="127" rows="2" placeholder="http://"></textarea></label>';
-  el.querySelector('.st-name').value = name || '';
-  el.querySelector('.st-url').value = url || '';
-  return el;
-}
-function paintStations() {
-  const rows = document.querySelectorAll('#stations .station');
-  rows.forEach((el, i) => { el.querySelector('.idx').textContent = 'Station ' + (i + 1); });
-  document.getElementById('addStation').disabled = rows.length >= RADIO_MAX;
-}
-function setStations(rows) {
-  const list = document.getElementById('stations');
-  const defaults = [
-    { name: 'JAZZ', url: 'http://ice2.somafm.com/secretagent-128-mp3' },
-    { name: 'Lofi', url: 'http://ice2.somafm.com/groovesalad-128-mp3' }
-  ];
-  list.replaceChildren();
-  (rows === undefined ? defaults : rows).slice(0, RADIO_MAX).forEach(r => list.appendChild(stationRow(r.name, r.url)));
-  paintStations();
-}
-function readStations() {
-  return [...document.querySelectorAll('#stations .station')].map(el => ({
-    name: el.querySelector('.st-name').value.trim(),
-    url: el.querySelector('.st-url').value.trim()
-  })).filter(s => s.url).slice(0, RADIO_MAX);
-}
-function sampleWhen() {
-  const tz = document.getElementById('timezone').value;
-  const base = {};
-  if (tz) base.timeZone = tz;
-  const clock24 = document.getElementById('clock24').value === '1';
-  const dateFmt = document.getElementById('dateFormat').value;
-  const longDay = document.getElementById('weekdayStyle').value === '1';
-  let wd = 'Mon', dt = '9 Nov', tm = clock24 ? '13:40' : '1:40 PM';
-  try {
-    const now = new Date();
-    const code = document.getElementById('language').value;
-    const intl = code === 'zh' ? 'zh-CN' : (code || 'en-GB');
-    const piece = (opts) => new Intl.DateTimeFormat(intl, Object.assign({}, base, opts)).format(now).replace(/\.$/, '');
-    wd = piece({ weekday: longDay ? 'long' : 'short' });
-    const day = piece({ day: 'numeric' });
-    const day2 = piece({ day: '2-digit' });
-    const mon = piece({ month: 'short' });
-    const mon2 = piece({ month: '2-digit' });
-    const year = piece({ year: 'numeric' });
-    dt = dateFmt === '1' ? mon + ' ' + day
-      : dateFmt === '2' ? day2 + '/' + mon2
-      : dateFmt === '3' ? mon2 + '/' + day2
-      : dateFmt === '4' ? year + '-' + mon2 + '-' + day2
-      : day + ' ' + mon;
-    tm = piece({ hour: '2-digit', minute: '2-digit', hourCycle: clock24 ? 'h23' : 'h12' });
-  } catch (e) {}
-  const wdEl = document.getElementById('prevWd');
-  const dtEl = document.getElementById('prevDate');
-  const tmEl = document.querySelector('#preview .clk');
-  if (wdEl) wdEl.textContent = wd;
-  if (dtEl) dtEl.textContent = dt;
-  if (tmEl) tmEl.textContent = tm;
-  const checks = { 0: 'tbPlace', 1: 'tbClock', 2: 'tbWifi', 3: 'tbBatt', 4: 'tbDate', 5: 'tbWeekday' };
-  const bar = document.getElementById('prevBar');
-  parseOrder(document.getElementById('toolbarOrder').value).forEach(id => {
-    const el = bar.querySelector('[data-bar="' + id + '"]');
-    if (!el) return;
-    bar.appendChild(el);
-    el.hidden = !document.getElementById(checks[id]).checked;
-  });
-}
-function paintPaper() {
-  const hours = +document.getElementById('forecastHours').value || 6;
-  const temps = [15, 17, 18, 19, 20, 21, 20, 18, 17, 16, 15, 14].slice(0, hours);
-  const box = document.getElementById('prevForecast');
-  box.replaceChildren();
-  const bars = document.getElementById('forecastStyle').value === '1';
-  box.classList.toggle('graph', !bars);
-  if (bars) {
-    temps.forEach((t, i) => {
-      const col = document.createElement('div');
-      const deg = document.createElement('b');
-      deg.textContent = t + '°';
-      const bar = document.createElement('i');
-      bar.style.height = (6 + (t - 16) * 3) + 'px';
-      const hour = document.createElement('span');
-      hour.textContent = String((14 + i) % 24).padStart(2, '0');
-      col.append(deg, bar, hour);
-      box.appendChild(col);
-    });
-  } else {
-    const lo = Math.min(...temps);
-    const hi = Math.max(...temps);
-    const pad = (hi - lo) < 2 ? 0.5 : 1;
-    let scaleLo = Math.floor(lo - pad);
-    let scaleHi = Math.ceil(hi + pad);
-    if (scaleHi - scaleLo < 4) {
-      const mid = (scaleHi + scaleLo) / 2;
-      scaleLo = Math.floor(mid - 2);
-      scaleHi = Math.ceil(mid + 2);
-    }
-    let step = 1;
-    scaleLo = Math.floor(scaleLo);
-    scaleHi = Math.ceil(scaleHi);
-    if (scaleHi <= scaleLo) scaleHi = scaleLo + 1;
-    while (true) {
-      const ticks = (scaleHi - scaleLo) / step + 1;
-      if (ticks <= 4) break;
-      step = step === 1 ? 2 : step === 2 ? 5 : step + 5;
-      scaleLo = Math.floor(scaleLo / step) * step;
-      scaleHi = Math.ceil(scaleHi / step) * step;
-      if (scaleHi <= scaleLo) scaleHi = scaleLo + step;
-      if (step > 40) break;
-    }
-    const span = scaleHi - scaleLo;
-    const axis = document.createElement('div');
-    axis.className = 'axis';
-    for (let deg = scaleHi; deg >= scaleLo; deg -= step) {
-      const mark = document.createElement('b');
-      mark.textContent = deg + '°';
-      axis.appendChild(mark);
-    }
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('viewBox', '0 0 100 40');
-    svg.setAttribute('preserveAspectRatio', 'none');
-    const pts = temps.map((t, i) => {
-      const x = temps.length === 1 ? 50 : (i / (temps.length - 1)) * 100;
-      const u = Math.max(0, Math.min(1, (t - scaleLo) / span));
-      const y = 3 + (1 - u) * 34;
-      return x.toFixed(1) + ',' + y.toFixed(1);
-    });
-    const area = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-    area.setAttribute('points', '0,40 ' + pts.join(' ') + ' 100,40');
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
-    line.setAttribute('points', pts.join(' '));
-    line.setAttribute('fill', 'none');
-    line.setAttribute('stroke-width', '1.6');
-    line.setAttribute('stroke-linejoin', 'round');
-    line.setAttribute('stroke-linecap', 'round');
-    svg.append(area, line);
-    pts.forEach(p => {
-      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      const xy = p.split(',');
-      dot.setAttribute('cx', xy[0]);
-      dot.setAttribute('cy', xy[1]);
-      dot.setAttribute('r', '2.4');
-      svg.appendChild(dot);
-    });
-    const hoursRow = document.createElement('div');
-    hoursRow.className = 'hours';
-    temps.forEach((_, i) => {
-      const hour = document.createElement('span');
-      hour.textContent = String((14 + i) % 24);
-      hoursRow.appendChild(hour);
-    });
-    box.append(axis, svg, hoursRow);
-  }
-  box.hidden = !document.getElementById('bForecast').checked;
-  const frameOn = (id) => document.getElementById(id).checked;
-  box.classList.toggle('boxed', frameOn('bFrameForecast'));
-  document.getElementById('prevDegrees').classList.toggle('boxed', frameOn('bFrameDegrees'));
-  document.getElementById('prevSky').classList.toggle('boxed', frameOn('bFrameSky'));
-  document.getElementById('prevHero').hidden = !document.getElementById('bTemp').checked;
-  document.querySelectorAll('#preview .tile').forEach(tile => tile.classList.toggle('boxed', frameOn('bFrameTiles')));
-  document.querySelector('#preview .cup').classList.toggle('boxed', frameOn('bFrameBrew'));
-  document.querySelector('#preview .on').classList.toggle('boxed', frameOn('bFrameRadio'));
-  document.querySelector('#preview .poem').classList.toggle('boxed', frameOn('bFrameHaiku'));
-  document.querySelectorAll('#preview .tile').forEach(tile => {
-    tile.hidden = !document.getElementById(tile.dataset.metric).checked;
-  });
-  const foot = document.querySelector('#preview .foot');
-  parseOrder(document.getElementById('footOrder').value).forEach(id => {
-    const el = foot.querySelector('[data-foot="' + id + '"]');
-    if (el) foot.appendChild(el);
-  });
-  document.querySelector('#preview .cup').hidden = !document.getElementById('bCoffee').checked;
-  document.querySelector('#preview .on').hidden = !document.getElementById('bRadio').checked;
-  document.querySelector('#preview .poem').hidden = !document.getElementById('bHaiku').checked;
-}
-const HAIKU = [
-  ["the radio holds a note", "jazz from a late radio"],
-  ["soft rain on the paper", "rain finds a thin wire"],
-  ["a cold cup by the lamp", "empty cup waiting dawn"],
-  ["paper moon in the gold", "moon holds a pale gold"],
-  ["the quiet room of rain", "a horn across the room"],
-  ["old vinyl turns slowly", "the paper keeps a song"],
-  ["a red mark on the page", "the gold edge on paper"],
-  ["blue hour keeps a horn", "trumpet under blue air"],
-  ["black coffee on monday", "soft static under lamp"],
-  ["a horn beyond the room", "small rain on the wire"],
-  ["the quiet horn tonight", "the late brass in room"],
-  ["gold light on the page", "the slow turn of night"],
-  ["a cold cup beside lamp", "steam leaves the paper"],
-  ["a horn across the hall", "echo waits in the room"],
-  ["gold dust on the paper", "red ink under the song"],
-  ["low radio through rain", "paper hears a low horn"],
-  ["saturday rain and jazz", "small club going still"],
-  ["the trumpet in the fog", "soft fog on brass keys"],
-  ["vinyl dust in sunlight", "a needle finds the cut"],
-  ["two taps and the radio", "it opens the slow song"],
-  ["lamps keep a late time", "a taxi waits for brass"],
-  ["one leaf on the sleeve", "autumn in the speakers"],
-  ["low bass on the stairs", "each step keeps a beat"],
-  ["tea steam on the paper", "the kettle clicks once"],
-  ["snow on a station roof", "the train in slow time"],
-  ["the solo ends too soon", "clapping like the rain"],
-  ["blue notes on a monday", "work can wait for jazz"],
-  ["a harbor wind and bell", "the ships answer minor"],
-  ["the last bus and a sax", "both are a little late"],
-  ["shut the lid then hear", "tomorrow keeps a chair"]
-];
-function dailyHaiku() {
-  const now = new Date();
-  let year = now.getFullYear() - 1900;
-  let yday = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 1)) / 86400000);
-  const tz = document.getElementById('timezone').value;
-  if (tz) {
-    try {
-      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
-      const y = +parts.find(p => p.type === 'year').value;
-      const m = +parts.find(p => p.type === 'month').value;
-      const d = +parts.find(p => p.type === 'day').value;
-      year = y - 1900;
-      yday = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000);
-    } catch (e) {}
-  }
-  let h = (year * 366 + yday) >>> 0;
-  h = (Math.imul(h, 1103515245) + 12345) >>> 0;
-  return (h >>> 16) % HAIKU.length;
-}
-function fillHaikuSelect() {
-  const sel = document.getElementById('haikuPick');
-  const cur = sel.dataset.want || sel.value || '0';
-  sel.replaceChildren();
-  const daily = document.createElement('option');
-  daily.value = '0';
-  daily.textContent = t('haikuDaily');
-  sel.appendChild(daily);
-  HAIKU.forEach((lines, i) => {
-    const o = document.createElement('option');
-    o.value = String(i + 1);
-    o.textContent = lines[0];
-    sel.appendChild(o);
-  });
-  sel.value = [...sel.options].some(o => o.value === cur) ? cur : '0';
-  delete sel.dataset.want;
-}
-function paintHaiku() {
-  const chosen = +document.getElementById('haikuPick').value || 0;
-  const i = chosen >= 1 && chosen <= HAIKU.length ? chosen - 1 : dailyHaiku();
-  const poem = document.querySelector('#preview .poem');
-  if (poem) {
-    const title = poem.querySelector('span');
-    const lines = HAIKU[i].join('<br>');
-    if (title) {
-      title.textContent = 'Haiku';
-      while (title.nextSibling)
-        title.nextSibling.remove();
-      title.insertAdjacentHTML('afterend', lines);
-    } else
-      poem.innerHTML = '<span>Haiku</span>' + lines;
-  }
-}
-function paint() {
-  applyLang();
-  fillHaikuSelect();
-  document.getElementById('preview').classList.toggle('upper', document.getElementById('upperTitles').checked);
-  paintSegs(); paintOrder('toolbarList', 'toolbarOrder'); paintOrder('metricList', 'metricOrder'); paintOrder('footList', 'footOrder'); paintPaper(); paintHaiku(); paintTheme();
-  sampleWhen();
-}
-document.querySelectorAll('.seg').forEach(seg => {
-  seg.addEventListener('click', ev => {
-    const b = ev.target.closest('button');
-    if (!b) return;
-    document.getElementById(seg.dataset.for).value = b.dataset.v;
-    paint();
-  });
-});
-document.querySelectorAll('.theme').forEach(b => b.onclick = () => { document.getElementById('themePreset').value = b.dataset.theme; paint(); });
-document.querySelectorAll('.pigs').forEach(group => {
-  for (let v = 0; v < 4; v++) {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'swatch k' + v;
-    b.dataset.v = String(v);
-    b.setAttribute('aria-label', ['Black', 'Paper', 'Gold', 'Red'][v]);
-    b.onclick = () => { document.getElementById(group.dataset.for).value = String(v); paint(); };
-    group.appendChild(b);
-  }
-});
-document.getElementById('darkMode').addEventListener('change', paint);
-document.getElementById('upperTitles').addEventListener('change', paint);
-document.getElementById('frameList').addEventListener('change', paint);
-document.getElementById('haikuPick').addEventListener('change', paint);
-document.getElementById('toolbarList').addEventListener('change', paint);
-document.getElementById('metricList').addEventListener('change', paint);
-document.getElementById('footList').addEventListener('change', paint);
-document.querySelectorAll('button.help').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const panel = document.getElementById(btn.getAttribute('aria-controls'));
-    const open = panel.hidden;
-    document.querySelectorAll('.helptext').forEach(p => { p.hidden = true; });
-    document.querySelectorAll('button.help').forEach(b => {
-      b.classList.remove('on');
-      b.setAttribute('aria-expanded', 'false');
-    });
-    if (open) {
-      panel.hidden = false;
-      btn.classList.add('on');
-      btn.setAttribute('aria-expanded', 'true');
-    }
-  });
-});
-document.querySelector('.blocks').addEventListener('change', paint);
-document.getElementById('timezone').addEventListener('change', paint);
-document.getElementById('stations').addEventListener('click', ev => {
-  const list = document.getElementById('stations');
-  const row = ev.target.closest('.station');
-  if (!row) return;
-  if (ev.target.closest('.drop')) {
-    row.remove();
-    paintStations();
-    return;
-  }
-  const b = ev.target.closest('.nudge');
-  if (!b) return;
-  const dir = +b.dataset.dir;
-  const sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
-  if (!sib) return;
-  if (dir < 0) list.insertBefore(row, sib);
-  else list.insertBefore(sib, row);
-  paintStations();
-});
-document.getElementById('addStation').onclick = () => {
-  const list = document.getElementById('stations');
-  if (list.children.length >= RADIO_MAX) return;
-  const row = stationRow('', '');
-  list.appendChild(row);
-  paintStations();
-  row.querySelector('.st-name').focus();
-};
-document.querySelectorAll('#toolbarList, #metricList, #footList').forEach(list => {
-  list.addEventListener('click', ev => {
-    const b = ev.target.closest('.nudge');
-    if (!b) return;
-    const line = b.closest('.line');
-    const dir = +b.dataset.dir;
-    const sib = dir < 0 ? line.previousElementSibling : line.nextElementSibling;
-    if (!sib) return;
-    if (dir < 0) list.insertBefore(line, sib);
-    else list.insertBefore(sib, line);
-    writeOrder(list);
-    paint();
-  });
-});
-document.getElementById('pairBtn').onclick = async () => {
-  try {
-    const j = await api('/api/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: document.getElementById('pair').value.trim() }) });
-    token = j.token; localStorage.setItem('jazztrixToken', token); gate(); status(t('paired'), true); await load();
-  } catch (e) { status(e.message, false); }
-};
-async function loadZones(current) {
-  const sel = document.getElementById('timezone');
-  try {
-    const zones = await api('/api/timezones', { headers: hdr() });
-    const cur = current || sel.value;
-    sel.innerHTML = '';
-    (zones || []).forEach(z => {
-      const o = document.createElement('option');
-      o.value = z.name;
-      o.textContent = z.label || z.name;
-      sel.appendChild(o);
-    });
-    if (cur && ![...sel.options].some(o => o.value === cur)) {
-      const o = document.createElement('option');
-      o.value = cur;
-      o.textContent = cur;
-      sel.appendChild(o);
-    }
-    if (cur) sel.value = cur;
-  } catch (e) {
-    if (current && !sel.options.length) {
-      const o = document.createElement('option');
-      o.value = current;
-      o.textContent = current;
-      sel.appendChild(o);
-    }
-  }
-}
-async function load() {
-  if (!token) return;
-  try {
-    const cfg = await api('/api/config', { headers: hdr() });
-    if (cfg.locale && [...document.getElementById('language').options].some(o => o.value === cfg.locale)) {
-      document.getElementById('language').value = cfg.locale;
-      localStorage.setItem('jazztrixLang', cfg.locale);
-    }
-    document.getElementById('units').value = cfg.units?.[0] === 'F' ? 'F' : 'C';
-    document.getElementById('clock24').value = cfg.clock24 ? '1' : '0';
-    await loadZones(cfg.timezone || '');
-    if (cfg.location_ready && cfg.location)
-      document.getElementById('place').value = cfg.location;
-    try {
-      const st = await api('/api/status', { headers: hdr() });
-      if (st?.wifi?.ssid) document.getElementById('wifiSsid').value = st.wifi.ssid;
-    } catch (e) {}
-    const d = await api('/api/desk', { headers: hdr() });
-    document.getElementById('nfc').value = d.nfc_label || '';
-    document.getElementById('brush').value = d.brush ?? 0;
-    document.getElementById('paper').value = d.paper ?? 0;
-    document.getElementById('darkMode').checked = !!d.dark_mode;
-    document.getElementById('unitSuffix').checked = d.unit_suffix !== false;
-    document.getElementById('upperTitles').checked = d.upper_titles !== false;
-    document.getElementById('windUnit').value = d.wind_unit ?? 0;
-    let fh = String(d.forecast_hours);
-    if (fh === '4') fh = '6';
-    document.getElementById('forecastHours').value = ['3','6','9','12'].includes(fh) ? fh : '6';
-    document.getElementById('forecastStyle').value = String(d.forecast_style) === '1' ? '1' : '0';
-    document.getElementById('themePreset').value = d.theme_preset ?? 0;
-    ['Bar','Accent','Alert','Hi','Lo'].forEach(k => {
-      const el = document.getElementById('color' + k);
-      if (el) el.value = d['color_' + k.toLowerCase()] ?? el.value;
-    });
-    if (d.toolbar_order) document.getElementById('toolbarOrder').value = d.toolbar_order.join(',');
-    if (d.metric_order) document.getElementById('metricOrder').value = d.metric_order.join(',');
-    if (d.foot_order) document.getElementById('footOrder').value = d.foot_order.join(',');
-    document.getElementById('dateFormat').value = String(d.date_format ?? 0);
-    document.getElementById('weekdayStyle').value = String(d.weekday_style ?? 0);
-    document.getElementById('tbPlace').checked = !!(d.toolbar_visible & 1);
-    document.getElementById('tbClock').checked = !!(d.toolbar_visible & 2);
-    document.getElementById('tbWifi').checked = !!(d.toolbar_visible & 4);
-    document.getElementById('tbBatt').checked = !!(d.toolbar_visible & 8);
-    document.getElementById('tbDate').checked = !!(d.toolbar_visible & 16);
-    document.getElementById('tbWeekday').checked = !!(d.toolbar_visible & 32);
-    document.getElementById('mWind').checked = !!(d.metric_visible & 1);
-    document.getElementById('mRain').checked = !!(d.metric_visible & 2);
-    document.getElementById('mPress').checked = !!(d.metric_visible & 4);
-    document.getElementById('mAir').checked = !!(d.metric_visible & 8);
-    document.getElementById('mUv').checked = !!(d.metric_visible & 16);
-    document.getElementById('bTemp').checked = !!(d.block_visible & 1);
-    document.getElementById('bForecast').checked = !!(d.block_visible & 2);
-    document.getElementById('bCoffee').checked = !!(d.block_visible & 4);
-    document.getElementById('bRadio').checked = !!(d.block_visible & 8);
-    document.getElementById('bHaiku').checked = !!(d.block_visible & 16);
-    const frames = d.borders === undefined || d.borders === null ? 0x78 : d.borders;
-    document.getElementById('bFrameForecast').checked = !!(frames & 1);
-    document.getElementById('bFrameDegrees').checked = !!(frames & 2);
-    document.getElementById('bFrameSky').checked = !!(frames & 4);
-    document.getElementById('bFrameTiles').checked = !!(frames & 8);
-    document.getElementById('bFrameBrew').checked = !!(frames & 16);
-    document.getElementById('bFrameRadio').checked = !!(frames & 32);
-    document.getElementById('bFrameHaiku').checked = !!(frames & 64);
-    document.getElementById('haikuPick').dataset.want = d.haiku_pick > 0 && d.haiku_pick <= 30 ? String(d.haiku_pick) : '0';
-    setStations(d.radios || []);
-    paint();
-    status(t('loaded'), true);
-  } catch (e) {
-    if (e.status === 401) {
-      token = '';
-      localStorage.removeItem('jazztrixToken');
-      gate();
-    }
-    status(e.message, false);
-  }
-}
-document.getElementById('wifiBtn').onclick = async () => {
-  try {
-    await api('/api/wifi', { method: 'POST', headers: hdr(), body: JSON.stringify({
-      ssid: document.getElementById('wifiSsid').value, password: document.getElementById('wifiPass').value }) });
-    status(t('wifiSaved'), true);
-  } catch (e) { status(e.message, false); }
-};
-document.getElementById('searchBtn').onclick = async () => {
-  try {
-  const q = document.getElementById('place').value.trim();
-    if (!q) return status(t('typePlace'), false);
-  const j = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=8').then(r => r.json());
-  const sel = document.getElementById('places'); sel.innerHTML = '';
-  (j.results || []).forEach(p => {
-    const o = document.createElement('option');
-    o.value = JSON.stringify({ name: p.name, latitude: p.latitude, longitude: p.longitude, timezone: p.timezone });
-      o.textContent = p.name + (p.admin1 ? ', ' + p.admin1 : '') + (p.country ? ', ' + p.country : '');
-    sel.appendChild(o);
-  });
-    if (!sel.options.length) status(t('noPlaces'), false);
-    else { sel.selectedIndex = 0; status(t('placesCount').replace('%n', sel.options.length), true); }
-  } catch (e) { status(t('searchNeeds'), false); }
-};
-document.getElementById('locBtn').onclick = async () => {
-  try {
-  const sel = document.getElementById('places');
-    if (!sel.value) return status(t('pickPlace'), false);
-  const p = JSON.parse(sel.value);
-  const cfg = await api('/api/config', { headers: hdr() });
-  cfg.location = p.name; cfg.latitude = p.latitude; cfg.longitude = p.longitude; cfg.location_ready = true;
-    if (p.timezone) {
-      cfg.timezone = p.timezone;
-      const sel = document.getElementById('timezone');
-      if (![...sel.options].some(o => o.value === p.timezone)) {
-        const o = document.createElement('option');
-        o.value = p.timezone;
-        o.textContent = p.timezone;
-        sel.appendChild(o);
-      }
-      sel.value = p.timezone;
-    }
-  cfg.units = document.getElementById('units').value;
-  cfg.clock24 = document.getElementById('clock24').value === '1';
-  await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
-    paint();
-    status(t('placeSaved').replace('%s', p.name), true);
-  } catch (e) { status(e.message, false); }
-};
-document.getElementById('deskBtn').onclick = async () => {
-  const btn = document.getElementById('deskBtn');
-  btn.disabled = true;
-  showSave(t('saving'), null);
-  try {
-    const cfg = await api('/api/config', { headers: hdr() });
-    cfg.units = document.getElementById('units').value;
-    cfg.clock24 = document.getElementById('clock24').value === '1';
-    const zone = document.getElementById('timezone').value;
-    if (zone) cfg.timezone = zone;
-    cfg.locale = document.getElementById('language').value || 'en';
-    localStorage.setItem('jazztrixLang', cfg.locale);
-    await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
-    const body = {
-      nfc_label: document.getElementById('nfc').value,
-      brush: +document.getElementById('brush').value,
-      paper: +document.getElementById('paper').value,
-      dark_mode: document.getElementById('darkMode').checked,
-      unit_suffix: document.getElementById('unitSuffix').checked,
-      upper_titles: document.getElementById('upperTitles').checked,
-      wind_unit: +document.getElementById('windUnit').value,
-      forecast_hours: +document.getElementById('forecastHours').value,
-      forecast_style: +document.getElementById('forecastStyle').value,
-      borders: (document.getElementById('bFrameForecast').checked ? 1 : 0) |
-        (document.getElementById('bFrameDegrees').checked ? 2 : 0) |
-        (document.getElementById('bFrameSky').checked ? 4 : 0) |
-        (document.getElementById('bFrameTiles').checked ? 8 : 0) |
-        (document.getElementById('bFrameBrew').checked ? 16 : 0) |
-        (document.getElementById('bFrameRadio').checked ? 32 : 0) |
-        (document.getElementById('bFrameHaiku').checked ? 64 : 0),
-      haiku_pick: +document.getElementById('haikuPick').value || 0,
-      theme_preset: +document.getElementById('themePreset').value,
-      color_bar: +document.getElementById('colorBar').value,
-      color_accent: +document.getElementById('colorAccent').value,
-      color_alert: +document.getElementById('colorAlert').value,
-      color_hi: +document.getElementById('colorHi').value,
-      color_lo: +document.getElementById('colorLo').value,
-      toolbar_order: parseOrder(document.getElementById('toolbarOrder').value),
-      metric_order: parseOrder(document.getElementById('metricOrder').value),
-      foot_order: parseOrder(document.getElementById('footOrder').value),
-      date_format: +document.getElementById('dateFormat').value,
-      weekday_style: +document.getElementById('weekdayStyle').value,
-      toolbar_visible: visBits([0,1,2,3,4,5], ['tbPlace','tbClock','tbWifi','tbBatt','tbDate','tbWeekday']),
-      metric_visible: visBits([0,1,2,3,4], ['mWind','mRain','mPress','mAir','mUv']),
-      block_visible: (document.getElementById('bTemp').checked ? 1 : 0) |
-        (document.getElementById('bForecast').checked ? 2 : 0) |
-        (document.getElementById('bCoffee').checked ? 4 : 0) |
-        (document.getElementById('bRadio').checked ? 8 : 0) |
-        (document.getElementById('bHaiku').checked ? 16 : 0),
-      radios: readStations()
-    };
-    await api('/api/desk', { method: 'PUT', headers: hdr(), body: JSON.stringify(body) });
-    showSave(t('savedPaper'), true);
-  } catch (e) { showSave(e.message, false); }
-  finally { btn.disabled = false; }
-};
+
 const I18N = {
   en: {
     blurb: 'A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.',
@@ -1209,7 +540,7 @@ const I18N = {
     helpLanguage: 'The paper and this page follow this language.',
     helpPair: 'Double-tap the round button. The paper shows six digits for about five minutes. Join JazzTrix-Setup and type the code here.',
     helpWifi: 'The home network. After you save, the password stays on the device. This page does not keep it.',
-    helpWeather: 'Live weather for the place you pick. Hours ahead is the forecast: 3, 6, 9, or 12 hours. It draws as a graph, with the hours along the bottom and the temperatures on the left. Bars are the other choice. Wind can be m/s, km/h, or mph.',
+    helpWeather: 'Search when the phone or the device is online. On JazzTrix-Setup, use quick picks or enter coordinates. Once the device is on home Wi‑Fi, search runs on the device so the phone does not need internet.',
     helpPaper: 'The large temperature and the forecast. Turn either one off. The rest of the paper stays.',
     helpBottom: 'Brew, radio, and the daily haiku. Turn a box off or move it. Up is toward the left, and the boxes that stay share the width. Tap the tag to add one to the brew count.',
     helpTop: 'Weekday, date, time, place, Wi-Fi, and battery. Up moves an item toward the left. The clock follows the time zone. Choosing a place fills the zone in.',
@@ -1223,7 +554,9 @@ const I18N = {
     language: 'Language', languageHint: 'The paper and this page follow this language.',
     pairTitle: 'Pair this phone', pairHint: 'Type the six digits on the display.', pairCode: 'Pairing code', pairBtn: 'Pair',
     wifiTitle: 'Wi‑Fi', wifiHint: 'The home network. The password stays on the device.', network: 'Network name', password: 'Password', saveWifi: 'Save Wi‑Fi',
-    weatherTitle: 'Weather', weatherHint: 'Search for the place that should sit on the paper.', place: 'Place', searchPlaces: 'Search places', usePlace: 'Use this place',
+    weatherTitle: 'Weather', weatherHint: 'Search, pick a quick city, or open Coordinates. Search uses the device when it is on home Wi‑Fi.', place: 'Place', searchPlaces: 'Search places', usePlace: 'Use this place',
+    quickPicks: 'Quick picks (no internet)', manualTitle: 'Coordinates', manualHint: 'Works on JazzTrix-Setup without internet. The name is what appears on the paper.',
+    manualName: 'Name on paper', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Use these coordinates',
     temperature: 'Temperature', hoursAhead: 'Hours ahead', forecastShape: 'Forecast', shapeGraph: 'Graph', shapeBars: 'Bars', wind: 'Wind', unitTitle: 'Show the unit in the title',
     paperTitle: 'On the paper', paperHint: 'Turn the temperature or the forecast off.',
     bottomTitle: 'Bottom row', bottomHint: 'Turn a box off, or move it. Up is toward the left. The boxes share the width.',
@@ -1246,7 +579,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'The stations the round button plays.', addStation: 'Add a station', saveChanges: 'Save changes',
     remove: 'Remove', name: 'Name', address: 'Address',
     paired: 'Paired. The desk is yours.', loaded: 'Settings loaded.', wifiSaved: 'Wi‑Fi saved on the device.',
-    typePlace: 'Type a place first.', noPlaces: 'No places found.', placesCount: '%n places.', searchNeeds: 'Search needs an internet connection.',
+    typePlace: 'Type a place first.', noPlaces: 'No places found.', placesCount: '%n places.', searchNeeds: 'Search needs internet, or use quick picks or coordinates.',
+    searchDeviceOffline: 'Device is offline. Save home Wi‑Fi first, or use quick picks or coordinates.',
+    searchOfflineList: 'Offline list only.', invalidCoords: 'Enter valid latitude and longitude.', needManualName: 'Enter a name for the paper.',
     pickPlace: 'Pick a place.', placeSaved: '%s saved.', savedPaper: 'Saved. The paper will refresh.', saving: 'Saving…'
   },
   es: {
@@ -1643,7 +978,7 @@ const I18N = {
   }
 };
 let lang = 'en';
-function t(key) {
+function tr(key) {
   return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
 }
 function applyLang() {
@@ -1652,24 +987,811 @@ function applyLang() {
   document.documentElement.lang = lang === 'zh' ? 'zh-Hans' : lang;
   document.documentElement.dir = 'ltr';
   document.querySelectorAll('[data-i18n]').forEach(el => {
-    const s = t(el.dataset.i18n);
+    const s = tr(el.dataset.i18n);
     if (s) el.textContent = s;
   });
   document.querySelectorAll('[data-i18n-aria]').forEach(el => {
-    const s = t(el.dataset.i18nAria);
+    const s = tr(el.dataset.i18nAria);
     if (s) el.setAttribute('aria-label', s);
   });
   const blurb = document.getElementById('blurb');
-  if (blurb) blurb.textContent = t('blurb');
+  if (blurb) blurb.textContent = tr('blurb');
   const word = document.body.classList.contains('locked')
-    ? (t('setupTitle') || 'Setup')
-    : (t('settingsTitle') || 'Settings');
+    ? (tr('setupTitle') || 'Setup')
+    : (tr('settingsTitle') || 'Settings');
   const pageWord = document.getElementById('pageWord');
   if (pageWord) pageWord.textContent = word;
   const live = document.getElementById('prevLive');
-  if (live) live.textContent = 'JAZZ / ' + (t('onWord') || 'ON');
+  if (live) live.textContent = 'JAZZ / ' + (tr('onWord') || 'ON');
   document.title = 'JazzTrix — ' + word;
 }
+
+function paintSegs() {
+  document.querySelectorAll('.seg').forEach(seg => {
+    const v = document.getElementById(seg.dataset.for).value;
+    seg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  });
+}
+function paintOrder(listId, inputId) {
+  const list = document.getElementById(listId);
+  parseOrder(document.getElementById(inputId).value).forEach(id => {
+    const el = list.querySelector('[data-id="' + id + '"]');
+    if (el) list.appendChild(el);
+  });
+}
+function writeOrder(list) {
+  const ids = { toolbarList: 'toolbarOrder', metricList: 'metricOrder', footList: 'footOrder' };
+  const input = document.getElementById(ids[list.id]);
+  input.value = [...list.querySelectorAll('.line')].map(el => el.dataset.id).join(',');
+}
+const THEMES = {
+  '0': { bar: 0, clock: 2, frame: 0, hi: 3, accent: 2, alert: 3 },
+  '1': { bar: 3, clock: 2, frame: 3, hi: 3, accent: 2, alert: 3 },
+  '2': { bar: 0, clock: 2, frame: 0, hi: 2, accent: 2, alert: 3 },
+  '4': { bar: 2, clock: 3, frame: 3, hi: 3, accent: 2, alert: 3 },
+  '5': { bar: 0, clock: 3, frame: 3, hi: 3, accent: 3, alert: 3 },
+  '6': { bar: 2, clock: 0, frame: 2, hi: 3, accent: 2, alert: 3 },
+  '7': { bar: 3, clock: 2, frame: 2, hi: 2, accent: 2, alert: 3 }
+};
+function paintTheme() {
+  const theme = document.getElementById('themePreset').value;
+  document.querySelectorAll('.theme').forEach(b => b.classList.toggle('on', b.dataset.theme === theme));
+  document.getElementById('customColors').classList.toggle('off', theme !== '3');
+  document.querySelectorAll('.pigs').forEach(group => {
+    const v = document.getElementById(group.dataset.for).value;
+    group.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.v === v));
+  });
+  const spec = theme === '3' ? {
+    bar: +document.getElementById('colorBar').value,
+    clock: +document.getElementById('colorAccent').value,
+    frame: +document.getElementById('colorAlert').value,
+    hi: +document.getElementById('colorHi').value,
+    accent: +document.getElementById('colorAccent').value,
+    alert: +document.getElementById('colorAlert').value
+  } : (THEMES[theme] || THEMES['0']);
+  const dark = document.getElementById('darkMode').checked;
+  const paper = dark ? INK[0] : INK[1];
+  const ink = dark ? INK[1] : INK[0];
+  const preview = document.getElementById('preview');
+  preview.style.background = paper;
+  preview.style.color = ink;
+  const bar = INK[spec.bar] || INK[0];
+  const barEl = preview.querySelector('.bar');
+  barEl.style.background = bar === paper ? ink : bar;
+  const barInk = (spec.bar === 1 || spec.bar === 2) ? INK[0] : INK[1];
+  barEl.style.color = barInk === barEl.style.background ? (dark ? INK[0] : INK[1]) : barInk;
+  const clk = preview.querySelector('.clk');
+  clk.style.color = INK[spec.clock] === barEl.style.background ? barEl.style.color : INK[spec.clock];
+  const when = preview.querySelector('.when');
+  if (when) when.style.color = clk.style.color;
+  preview.querySelector('.temp').style.color = ink;
+  preview.querySelector('.hi').style.color = INK[spec.hi] === paper ? ink : INK[spec.hi];
+  const lo = preview.querySelector('.lo');
+  if (lo) lo.style.color = ink;
+  const frameInk = INK[spec.frame];
+  ['prevDegrees', 'prevSky'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.borderColor = el.classList.contains('boxed') ? frameInk : 'transparent';
+    el.style.color = ink;
+  });
+  const forecast = preview.querySelector('.forecast');
+  if (forecast) {
+    forecast.style.borderColor = forecast.classList.contains('boxed') ? frameInk : 'transparent';
+    forecast.style.color = ink;
+    const temps = [16, 17, 18, 18, 19, 20, 21, 20, 19, 18, 17, 16];
+    forecast.querySelectorAll('i').forEach((bar, i) => {
+      const temp = temps[i] || 16;
+      bar.style.background = temp >= 20 ? INK[3] : temp >= 18 ? INK[2] : (dark ? INK[1] : INK[0]);
+    });
+    const stroke = forecast.querySelector('polyline');
+    const area = forecast.querySelector('polygon');
+    if (stroke) stroke.setAttribute('stroke', ink);
+    if (area) area.setAttribute('fill', INK[2]);
+    forecast.querySelectorAll('circle').forEach(dot => dot.setAttribute('fill', ink));
+  }
+  preview.querySelectorAll('.tile').forEach(tile => {
+    const boxed = tile.classList.contains('boxed');
+    tile.style.borderColor = boxed ? frameInk : 'transparent';
+    tile.style.color = ink;
+    tile.style.background = boxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+  });
+  const cup = preview.querySelector('.cup');
+  const alert = INK[spec.alert];
+  const cupBoxed = cup.classList.contains('boxed');
+  cup.style.background = cupBoxed ? alert : 'transparent';
+  cup.style.color = cupBoxed ? (alert === INK[1] || alert === INK[2] ? INK[0] : INK[1]) : ink;
+  const on = preview.querySelector('.on');
+  const onBoxed = on.classList.contains('boxed');
+  on.style.background = onBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+  on.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
+  on.style.border = onBoxed ? '1px solid ' + frameInk : '1px solid transparent';
+  const poem = preview.querySelector('.poem');
+  if (poem) {
+    const poemBoxed = poem.classList.contains('boxed');
+    poem.style.background = poemBoxed ? (dark ? '#2a211b' : '#fff') : 'transparent';
+    poem.style.color = ink;
+    poem.style.border = poemBoxed ? '1px solid ' + frameInk : '1px solid transparent';
+    const poemTitle = poem.querySelector('span');
+    if (poemTitle)
+      poemTitle.style.color = INK[spec.accent] === paper ? ink : INK[spec.accent];
+  }
+}
+const RADIO_MAX = 8;
+function stationRow(name, url) {
+  const el = document.createElement('article');
+  el.className = 'station';
+  el.innerHTML =
+    '<div class="station-top"><button type="button" class="nudge" data-dir="-1" aria-label="Move station up">↑</button>' +
+    '<button type="button" class="nudge" data-dir="1" aria-label="Move station down">↓</button>' +
+    '<b class="idx"></b><button type="button" class="drop" data-i18n="remove">Remove</button></div>' +
+    '<label class="field"><span data-i18n="name">Name</span><input class="st-name" type="text" maxlength="23"></label>' +
+    '<label class="field"><span data-i18n="address">Address</span><textarea class="st-url" maxlength="127" rows="2" placeholder="http://"></textarea></label>';
+  el.querySelector('.st-name').value = name || '';
+  el.querySelector('.st-url').value = url || '';
+  return el;
+}
+function paintStations() {
+  const rows = document.querySelectorAll('#stations .station');
+  rows.forEach((el, i) => { el.querySelector('.idx').textContent = 'Station ' + (i + 1); });
+  document.getElementById('addStation').disabled = rows.length >= RADIO_MAX;
+}
+function setStations(rows) {
+  const list = document.getElementById('stations');
+  const defaults = [
+    { name: 'JAZZ', url: 'http://ice2.somafm.com/secretagent-128-mp3' },
+    { name: 'Lofi', url: 'http://ice2.somafm.com/groovesalad-128-mp3' }
+  ];
+  list.replaceChildren();
+  (rows === undefined ? defaults : rows).slice(0, RADIO_MAX).forEach(r => list.appendChild(stationRow(r.name, r.url)));
+  paintStations();
+}
+function readStations() {
+  return [...document.querySelectorAll('#stations .station')].map(el => ({
+    name: el.querySelector('.st-name').value.trim(),
+    url: el.querySelector('.st-url').value.trim()
+  })).filter(s => s.url).slice(0, RADIO_MAX);
+}
+function sampleWhen() {
+  const tz = document.getElementById('timezone').value;
+  const base = {};
+  if (tz) base.timeZone = tz;
+  const clock24 = document.getElementById('clock24').value === '1';
+  const dateFmt = document.getElementById('dateFormat').value;
+  const longDay = document.getElementById('weekdayStyle').value === '1';
+  let wd = 'Mon', dt = '9 Nov', tm = clock24 ? '13:40' : '1:40 PM';
+  try {
+    const now = new Date();
+    const code = document.getElementById('language').value;
+    const intl = code === 'zh' ? 'zh-CN' : (code || 'en-GB');
+    const piece = (opts) => new Intl.DateTimeFormat(intl, Object.assign({}, base, opts)).format(now).replace(/\.$/, '');
+    wd = piece({ weekday: longDay ? 'long' : 'short' });
+    const day = piece({ day: 'numeric' });
+    const day2 = piece({ day: '2-digit' });
+    const mon = piece({ month: 'short' });
+    const mon2 = piece({ month: '2-digit' });
+    const year = piece({ year: 'numeric' });
+    dt = dateFmt === '1' ? mon + ' ' + day
+      : dateFmt === '2' ? day2 + '/' + mon2
+      : dateFmt === '3' ? mon2 + '/' + day2
+      : dateFmt === '4' ? year + '-' + mon2 + '-' + day2
+      : day + ' ' + mon;
+    tm = piece({ hour: '2-digit', minute: '2-digit', hourCycle: clock24 ? 'h23' : 'h12' });
+  } catch (e) {}
+  const wdEl = document.getElementById('prevWd');
+  const dtEl = document.getElementById('prevDate');
+  const tmEl = document.querySelector('#preview .clk');
+  if (wdEl) wdEl.textContent = wd;
+  if (dtEl) dtEl.textContent = dt;
+  if (tmEl) tmEl.textContent = tm;
+  const checks = { 0: 'tbPlace', 1: 'tbClock', 2: 'tbWifi', 3: 'tbBatt', 4: 'tbDate', 5: 'tbWeekday' };
+  const bar = document.getElementById('prevBar');
+  parseOrder(document.getElementById('toolbarOrder').value).forEach(id => {
+    const el = bar.querySelector('[data-bar="' + id + '"]');
+    if (!el) return;
+    bar.appendChild(el);
+    el.hidden = !document.getElementById(checks[id]).checked;
+  });
+}
+function paintPaper() {
+  const hours = +document.getElementById('forecastHours').value || 6;
+  const temps = [15, 17, 18, 19, 20, 21, 20, 18, 17, 16, 15, 14].slice(0, hours);
+  const box = document.getElementById('prevForecast');
+  box.replaceChildren();
+  const bars = document.getElementById('forecastStyle').value === '1';
+  box.classList.toggle('graph', !bars);
+  if (bars) {
+    temps.forEach((t, i) => {
+      const col = document.createElement('div');
+      const deg = document.createElement('b');
+      deg.textContent = t + '°';
+      const bar = document.createElement('i');
+      bar.style.height = (6 + (t - 16) * 3) + 'px';
+      const hour = document.createElement('span');
+      hour.textContent = String((14 + i) % 24).padStart(2, '0');
+      col.append(deg, bar, hour);
+      box.appendChild(col);
+    });
+  } else {
+    const lo = Math.min(...temps);
+    const hi = Math.max(...temps);
+    const pad = (hi - lo) < 2 ? 0.5 : 1;
+    let scaleLo = Math.floor(lo - pad);
+    let scaleHi = Math.ceil(hi + pad);
+    if (scaleHi - scaleLo < 4) {
+      const mid = (scaleHi + scaleLo) / 2;
+      scaleLo = Math.floor(mid - 2);
+      scaleHi = Math.ceil(mid + 2);
+    }
+    let step = 1;
+    scaleLo = Math.floor(scaleLo);
+    scaleHi = Math.ceil(scaleHi);
+    if (scaleHi <= scaleLo) scaleHi = scaleLo + 1;
+    while (true) {
+      const ticks = (scaleHi - scaleLo) / step + 1;
+      if (ticks <= 4) break;
+      step = step === 1 ? 2 : step === 2 ? 5 : step + 5;
+      scaleLo = Math.floor(scaleLo / step) * step;
+      scaleHi = Math.ceil(scaleHi / step) * step;
+      if (scaleHi <= scaleLo) scaleHi = scaleLo + step;
+      if (step > 40) break;
+    }
+    const span = scaleHi - scaleLo;
+    const axis = document.createElement('div');
+    axis.className = 'axis';
+    for (let deg = scaleHi; deg >= scaleLo; deg -= step) {
+      const mark = document.createElement('b');
+      mark.textContent = deg + '°';
+      axis.appendChild(mark);
+    }
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 100 40');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    const pts = temps.map((t, i) => {
+      const x = temps.length === 1 ? 50 : (i / (temps.length - 1)) * 100;
+      const u = Math.max(0, Math.min(1, (t - scaleLo) / span));
+      const y = 3 + (1 - u) * 34;
+      return x.toFixed(1) + ',' + y.toFixed(1);
+    });
+    const area = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    area.setAttribute('points', '0,40 ' + pts.join(' ') + ' 100,40');
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+    line.setAttribute('points', pts.join(' '));
+    line.setAttribute('fill', 'none');
+    line.setAttribute('stroke-width', '1.6');
+    line.setAttribute('stroke-linejoin', 'round');
+    line.setAttribute('stroke-linecap', 'round');
+    svg.append(area, line);
+    pts.forEach(p => {
+      const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const xy = p.split(',');
+      dot.setAttribute('cx', xy[0]);
+      dot.setAttribute('cy', xy[1]);
+      dot.setAttribute('r', '2.4');
+      svg.appendChild(dot);
+    });
+    const hoursRow = document.createElement('div');
+    hoursRow.className = 'hours';
+    temps.forEach((_, i) => {
+      const hour = document.createElement('span');
+      hour.textContent = String((14 + i) % 24);
+      hoursRow.appendChild(hour);
+    });
+    box.append(axis, svg, hoursRow);
+  }
+  box.hidden = !document.getElementById('bForecast').checked;
+  const frameOn = (id) => document.getElementById(id).checked;
+  box.classList.toggle('boxed', frameOn('bFrameForecast'));
+  document.getElementById('prevDegrees').classList.toggle('boxed', frameOn('bFrameDegrees'));
+  document.getElementById('prevSky').classList.toggle('boxed', frameOn('bFrameSky'));
+  document.getElementById('prevHero').hidden = !document.getElementById('bTemp').checked;
+  document.querySelectorAll('#preview .tile').forEach(tile => tile.classList.toggle('boxed', frameOn('bFrameTiles')));
+  document.querySelector('#preview .cup').classList.toggle('boxed', frameOn('bFrameBrew'));
+  document.querySelector('#preview .on').classList.toggle('boxed', frameOn('bFrameRadio'));
+  document.querySelector('#preview .poem').classList.toggle('boxed', frameOn('bFrameHaiku'));
+  document.querySelectorAll('#preview .tile').forEach(tile => {
+    tile.hidden = !document.getElementById(tile.dataset.metric).checked;
+  });
+  const foot = document.querySelector('#preview .foot');
+  parseOrder(document.getElementById('footOrder').value).forEach(id => {
+    const el = foot.querySelector('[data-foot="' + id + '"]');
+    if (el) foot.appendChild(el);
+  });
+  document.querySelector('#preview .cup').hidden = !document.getElementById('bCoffee').checked;
+  document.querySelector('#preview .on').hidden = !document.getElementById('bRadio').checked;
+  document.querySelector('#preview .poem').hidden = !document.getElementById('bHaiku').checked;
+}
+const HAIKU = [
+  ["the radio holds a note", "jazz from a late radio"],
+  ["soft rain on the paper", "rain finds a thin wire"],
+  ["a cold cup by the lamp", "empty cup waiting dawn"],
+  ["paper moon in the gold", "moon holds a pale gold"],
+  ["the quiet room of rain", "a horn across the room"],
+  ["old vinyl turns slowly", "the paper keeps a song"],
+  ["a red mark on the page", "the gold edge on paper"],
+  ["blue hour keeps a horn", "trumpet under blue air"],
+  ["black coffee on monday", "soft static under lamp"],
+  ["a horn beyond the room", "small rain on the wire"],
+  ["the quiet horn tonight", "the late brass in room"],
+  ["gold light on the page", "the slow turn of night"],
+  ["a cold cup beside lamp", "steam leaves the paper"],
+  ["a horn across the hall", "echo waits in the room"],
+  ["gold dust on the paper", "red ink under the song"],
+  ["low radio through rain", "paper hears a low horn"],
+  ["saturday rain and jazz", "small club going still"],
+  ["the trumpet in the fog", "soft fog on brass keys"],
+  ["vinyl dust in sunlight", "a needle finds the cut"],
+  ["two taps and the radio", "it opens the slow song"],
+  ["lamps keep a late time", "a taxi waits for brass"],
+  ["one leaf on the sleeve", "autumn in the speakers"],
+  ["low bass on the stairs", "each step keeps a beat"],
+  ["tea steam on the paper", "the kettle clicks once"],
+  ["snow on a station roof", "the train in slow time"],
+  ["the solo ends too soon", "clapping like the rain"],
+  ["blue notes on a monday", "work can wait for jazz"],
+  ["a harbor wind and bell", "the ships answer minor"],
+  ["the last bus and a sax", "both are a little late"],
+  ["shut the lid then hear", "tomorrow keeps a chair"]
+];
+function dailyHaiku() {
+  const now = new Date();
+  let year = now.getFullYear() - 1900;
+  let yday = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - Date.UTC(now.getFullYear(), 0, 1)) / 86400000);
+  const tz = document.getElementById('timezone').value;
+  if (tz) {
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(now);
+      const y = +parts.find(p => p.type === 'year').value;
+      const m = +parts.find(p => p.type === 'month').value;
+      const d = +parts.find(p => p.type === 'day').value;
+      year = y - 1900;
+      yday = Math.floor((Date.UTC(y, m - 1, d) - Date.UTC(y, 0, 1)) / 86400000);
+    } catch (e) {}
+  }
+  let h = (year * 366 + yday) >>> 0;
+  h = (Math.imul(h, 1103515245) + 12345) >>> 0;
+  return (h >>> 16) % HAIKU.length;
+}
+function fillHaikuSelect() {
+  const sel = document.getElementById('haikuPick');
+  const cur = sel.dataset.want || sel.value || '0';
+  sel.replaceChildren();
+  const daily = document.createElement('option');
+  daily.value = '0';
+  daily.textContent = tr('haikuDaily');
+  sel.appendChild(daily);
+  HAIKU.forEach((lines, i) => {
+    const o = document.createElement('option');
+    o.value = String(i + 1);
+    o.textContent = lines[0];
+    sel.appendChild(o);
+  });
+  sel.value = [...sel.options].some(o => o.value === cur) ? cur : '0';
+  delete sel.dataset.want;
+}
+function paintHaiku() {
+  const chosen = +document.getElementById('haikuPick').value || 0;
+  const i = chosen >= 1 && chosen <= HAIKU.length ? chosen - 1 : dailyHaiku();
+  const poem = document.querySelector('#preview .poem');
+  if (poem) {
+    const title = poem.querySelector('span');
+    const lines = HAIKU[i].join('<br>');
+    if (title) {
+      title.textContent = 'Haiku';
+      while (title.nextSibling)
+        title.nextSibling.remove();
+      title.insertAdjacentHTML('afterend', lines);
+    } else
+      poem.innerHTML = '<span>Haiku</span>' + lines;
+  }
+}
+function paint() {
+  applyLang();
+  fillHaikuSelect();
+  document.getElementById('preview').classList.toggle('upper', document.getElementById('upperTitles').checked);
+  paintSegs(); paintOrder('toolbarList', 'toolbarOrder'); paintOrder('metricList', 'metricOrder'); paintOrder('footList', 'footOrder'); paintPaper(); paintHaiku(); paintTheme();
+  sampleWhen();
+}
+document.querySelectorAll('.seg').forEach(seg => {
+  seg.addEventListener('click', ev => {
+    const b = ev.target.closest('button');
+    if (!b) return;
+    document.getElementById(seg.dataset.for).value = b.dataset.v;
+    paint();
+  });
+});
+document.querySelectorAll('.theme').forEach(b => b.onclick = () => { document.getElementById('themePreset').value = b.dataset.theme; paint(); });
+document.querySelectorAll('.pigs').forEach(group => {
+  for (let v = 0; v < 4; v++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'swatch k' + v;
+    b.dataset.v = String(v);
+    b.setAttribute('aria-label', ['Black', 'Paper', 'Gold', 'Red'][v]);
+    b.onclick = () => { document.getElementById(group.dataset.for).value = String(v); paint(); };
+    group.appendChild(b);
+  }
+});
+document.getElementById('darkMode').addEventListener('change', paint);
+document.getElementById('upperTitles').addEventListener('change', paint);
+document.getElementById('frameList').addEventListener('change', paint);
+document.getElementById('haikuPick').addEventListener('change', paint);
+document.getElementById('toolbarList').addEventListener('change', paint);
+document.getElementById('metricList').addEventListener('change', paint);
+document.getElementById('footList').addEventListener('change', paint);
+document.querySelectorAll('button.help').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const panel = document.getElementById(btn.getAttribute('aria-controls'));
+    const open = panel.hidden;
+    document.querySelectorAll('.helptext').forEach(p => { p.hidden = true; });
+    document.querySelectorAll('button.help').forEach(b => {
+      b.classList.remove('on');
+      b.setAttribute('aria-expanded', 'false');
+    });
+    if (open) {
+      panel.hidden = false;
+      btn.classList.add('on');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  });
+});
+document.querySelector('.blocks').addEventListener('change', paint);
+document.getElementById('timezone').addEventListener('change', paint);
+document.getElementById('stations').addEventListener('click', ev => {
+  const list = document.getElementById('stations');
+  const row = ev.target.closest('.station');
+  if (!row) return;
+  if (ev.target.closest('.drop')) {
+    row.remove();
+    paintStations();
+    return;
+  }
+  const b = ev.target.closest('.nudge');
+  if (!b) return;
+  const dir = +b.dataset.dir;
+  const sib = dir < 0 ? row.previousElementSibling : row.nextElementSibling;
+  if (!sib) return;
+  if (dir < 0) list.insertBefore(row, sib);
+  else list.insertBefore(sib, row);
+  paintStations();
+});
+document.getElementById('addStation').onclick = () => {
+  const list = document.getElementById('stations');
+  if (list.children.length >= RADIO_MAX) return;
+  const row = stationRow('', '');
+  list.appendChild(row);
+  paintStations();
+  row.querySelector('.st-name').focus();
+};
+document.querySelectorAll('#toolbarList, #metricList, #footList').forEach(list => {
+  list.addEventListener('click', ev => {
+    const b = ev.target.closest('.nudge');
+    if (!b) return;
+    const line = b.closest('.line');
+    const dir = +b.dataset.dir;
+    const sib = dir < 0 ? line.previousElementSibling : line.nextElementSibling;
+    if (!sib) return;
+    if (dir < 0) list.insertBefore(line, sib);
+    else list.insertBefore(sib, line);
+    writeOrder(list);
+    paint();
+  });
+});
+document.getElementById('pairBtn').onclick = async () => {
+  try {
+    const j = await api('/api/pair', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: document.getElementById('pair').value.trim() }) });
+    token = j.token; localStorage.setItem('jazztrixToken', token); gate(); status(tr('paired'), true); await load();
+  } catch (e) { status(e.message, false); }
+};
+async function loadZones(current) {
+  const sel = document.getElementById('timezone');
+  try {
+    const zones = await api('/api/timezones', { headers: hdr() });
+    const cur = current || sel.value;
+    sel.innerHTML = '';
+    (zones || []).forEach(z => {
+      const o = document.createElement('option');
+      o.value = z.name;
+      o.textContent = z.label || z.name;
+      sel.appendChild(o);
+    });
+    if (cur && ![...sel.options].some(o => o.value === cur)) {
+      const o = document.createElement('option');
+      o.value = cur;
+      o.textContent = cur;
+      sel.appendChild(o);
+    }
+    if (cur) sel.value = cur;
+  } catch (e) {
+    if (current && !sel.options.length) {
+      const o = document.createElement('option');
+      o.value = current;
+      o.textContent = current;
+      sel.appendChild(o);
+    }
+  }
+}
+async function load() {
+  if (!token) return;
+  try {
+    const cfg = await api('/api/config', { headers: hdr() });
+    if (cfg.locale && [...document.getElementById('language').options].some(o => o.value === cfg.locale)) {
+      document.getElementById('language').value = cfg.locale;
+      localStorage.setItem('jazztrixLang', cfg.locale);
+    }
+    document.getElementById('units').value = cfg.units?.[0] === 'F' ? 'F' : 'C';
+    document.getElementById('clock24').value = cfg.clock24 ? '1' : '0';
+    await loadZones(cfg.timezone || '');
+    if (cfg.location_ready && cfg.location)
+      document.getElementById('place').value = cfg.location;
+    try {
+      const st = await api('/api/status', { headers: hdr() });
+      if (st?.wifi?.ssid) document.getElementById('wifiSsid').value = st.wifi.ssid;
+    } catch (e) {}
+    const d = await api('/api/desk', { headers: hdr() });
+    document.getElementById('nfc').value = d.nfc_label || '';
+    document.getElementById('brush').value = d.brush ?? 0;
+    document.getElementById('paper').value = d.paper ?? 0;
+    document.getElementById('darkMode').checked = !!d.dark_mode;
+    document.getElementById('unitSuffix').checked = d.unit_suffix !== false;
+    document.getElementById('upperTitles').checked = d.upper_titles !== false;
+    document.getElementById('windUnit').value = d.wind_unit ?? 0;
+    let fh = String(d.forecast_hours);
+    if (fh === '4') fh = '6';
+    document.getElementById('forecastHours').value = ['3','6','9','12'].includes(fh) ? fh : '6';
+    document.getElementById('forecastStyle').value = String(d.forecast_style) === '1' ? '1' : '0';
+    document.getElementById('themePreset').value = d.theme_preset ?? 0;
+    ['Bar','Accent','Alert','Hi','Lo'].forEach(k => {
+      const el = document.getElementById('color' + k);
+      if (el) el.value = d['color_' + k.toLowerCase()] ?? el.value;
+    });
+    if (d.toolbar_order) document.getElementById('toolbarOrder').value = d.toolbar_order.join(',');
+    if (d.metric_order) document.getElementById('metricOrder').value = d.metric_order.join(',');
+    if (d.foot_order) document.getElementById('footOrder').value = d.foot_order.join(',');
+    document.getElementById('dateFormat').value = String(d.date_format ?? 0);
+    document.getElementById('weekdayStyle').value = String(d.weekday_style ?? 0);
+    document.getElementById('tbPlace').checked = !!(d.toolbar_visible & 1);
+    document.getElementById('tbClock').checked = !!(d.toolbar_visible & 2);
+    document.getElementById('tbWifi').checked = !!(d.toolbar_visible & 4);
+    document.getElementById('tbBatt').checked = !!(d.toolbar_visible & 8);
+    document.getElementById('tbDate').checked = !!(d.toolbar_visible & 16);
+    document.getElementById('tbWeekday').checked = !!(d.toolbar_visible & 32);
+    document.getElementById('mWind').checked = !!(d.metric_visible & 1);
+    document.getElementById('mRain').checked = !!(d.metric_visible & 2);
+    document.getElementById('mPress').checked = !!(d.metric_visible & 4);
+    document.getElementById('mAir').checked = !!(d.metric_visible & 8);
+    document.getElementById('mUv').checked = !!(d.metric_visible & 16);
+    document.getElementById('bTemp').checked = !!(d.block_visible & 1);
+    document.getElementById('bForecast').checked = !!(d.block_visible & 2);
+    document.getElementById('bCoffee').checked = !!(d.block_visible & 4);
+    document.getElementById('bRadio').checked = !!(d.block_visible & 8);
+    document.getElementById('bHaiku').checked = !!(d.block_visible & 16);
+    const frames = d.borders === undefined || d.borders === null ? 0x78 : d.borders;
+    document.getElementById('bFrameForecast').checked = !!(frames & 1);
+    document.getElementById('bFrameDegrees').checked = !!(frames & 2);
+    document.getElementById('bFrameSky').checked = !!(frames & 4);
+    document.getElementById('bFrameTiles').checked = !!(frames & 8);
+    document.getElementById('bFrameBrew').checked = !!(frames & 16);
+    document.getElementById('bFrameRadio').checked = !!(frames & 32);
+    document.getElementById('bFrameHaiku').checked = !!(frames & 64);
+    document.getElementById('haikuPick').dataset.want = d.haiku_pick > 0 && d.haiku_pick <= 30 ? String(d.haiku_pick) : '0';
+    setStations(d.radios || []);
+    paint();
+    status(tr('loaded'), true);
+  } catch (e) {
+    if (e.status === 401) {
+      token = '';
+      localStorage.removeItem('jazztrixToken');
+      gate();
+    }
+    status(e.message, false);
+  }
+}
+document.getElementById('wifiBtn').onclick = async () => {
+  try {
+    await api('/api/wifi', { method: 'POST', headers: hdr(), body: JSON.stringify({
+      ssid: document.getElementById('wifiSsid').value, password: document.getElementById('wifiPass').value }) });
+    status(tr('wifiSaved'), true);
+  } catch (e) { status(e.message, false); }
+};
+const OFFLINE_CITIES = [
+  { name: 'Amsterdam', latitude: 52.3676, longitude: 4.9041, timezone: 'Europe/Amsterdam', admin1: 'North Holland', country: 'Netherlands' },
+  { name: 'Barcelona', latitude: 41.3874, longitude: 2.1686, timezone: 'Europe/Madrid', admin1: 'Catalonia', country: 'Spain' },
+  { name: 'Berlin', latitude: 52.52, longitude: 13.405, timezone: 'Europe/Berlin', admin1: 'Berlin', country: 'Germany' },
+  { name: 'Brussels', latitude: 50.8503, longitude: 4.3517, timezone: 'Europe/Brussels', admin1: 'Brussels', country: 'Belgium' },
+  { name: 'Chicago', latitude: 41.8781, longitude: -87.6298, timezone: 'America/Chicago', admin1: 'Illinois', country: 'United States' },
+  { name: 'Copenhagen', latitude: 55.6761, longitude: 12.5683, timezone: 'Europe/Copenhagen', admin1: 'Capital Region', country: 'Denmark' },
+  { name: 'Dubai', latitude: 25.2048, longitude: 55.2708, timezone: 'Asia/Dubai', admin1: 'Dubai', country: 'United Arab Emirates' },
+  { name: 'Lisbon', latitude: 38.7223, longitude: -9.1393, timezone: 'Europe/Lisbon', admin1: 'Lisbon', country: 'Portugal' },
+  { name: 'London', latitude: 51.5074, longitude: -0.1278, timezone: 'Europe/London', admin1: 'England', country: 'United Kingdom' },
+  { name: 'Los Angeles', latitude: 34.0522, longitude: -118.2437, timezone: 'America/Los_Angeles', admin1: 'California', country: 'United States' },
+  { name: 'Madrid', latitude: 40.4168, longitude: -3.7038, timezone: 'Europe/Madrid', admin1: 'Community of Madrid', country: 'Spain' },
+  { name: 'Mexico City', latitude: 19.4326, longitude: -99.1332, timezone: 'America/Mexico_City', admin1: 'Mexico City', country: 'Mexico' },
+  { name: 'Milan', latitude: 45.4642, longitude: 9.19, timezone: 'Europe/Rome', admin1: 'Lombardy', country: 'Italy' },
+  { name: 'Montreal', latitude: 45.5019, longitude: -73.5674, timezone: 'America/Toronto', admin1: 'Quebec', country: 'Canada' },
+  { name: 'Munich', latitude: 48.1371, longitude: 11.5754, timezone: 'Europe/Berlin', admin1: 'Bavaria', country: 'Germany' },
+  { name: 'New York', latitude: 40.7128, longitude: -74.006, timezone: 'America/New_York', admin1: 'New York', country: 'United States' },
+  { name: 'Oslo', latitude: 59.9139, longitude: 10.7522, timezone: 'Europe/Oslo', admin1: 'Oslo', country: 'Norway' },
+  { name: 'Paris', latitude: 48.8566, longitude: 2.3522, timezone: 'Europe/Paris', admin1: 'Île-de-France', country: 'France' },
+  { name: 'Prague', latitude: 50.0755, longitude: 14.4378, timezone: 'Europe/Prague', admin1: 'Prague', country: 'Czechia' },
+  { name: 'Rome', latitude: 41.9028, longitude: 12.4964, timezone: 'Europe/Rome', admin1: 'Lazio', country: 'Italy' },
+  { name: 'San Francisco', latitude: 37.7749, longitude: -122.4194, timezone: 'America/Los_Angeles', admin1: 'California', country: 'United States' },
+  { name: 'São Paulo', latitude: -23.5505, longitude: -46.6333, timezone: 'America/Sao_Paulo', admin1: 'São Paulo', country: 'Brazil' },
+  { name: 'Seoul', latitude: 37.5665, longitude: 126.978, timezone: 'Asia/Seoul', admin1: 'Seoul', country: 'South Korea' },
+  { name: 'Singapore', latitude: 1.3521, longitude: 103.8198, timezone: 'Asia/Singapore', admin1: 'Singapore', country: 'Singapore' },
+  { name: 'Stockholm', latitude: 59.3293, longitude: 18.0686, timezone: 'Europe/Stockholm', admin1: 'Stockholm', country: 'Sweden' },
+  { name: 'Sydney', latitude: -33.8688, longitude: 151.2093, timezone: 'Australia/Sydney', admin1: 'New South Wales', country: 'Australia' },
+  { name: 'Tokyo', latitude: 35.6762, longitude: 139.6503, timezone: 'Asia/Tokyo', admin1: 'Tokyo', country: 'Japan' },
+  { name: 'Toronto', latitude: 43.6532, longitude: -79.3832, timezone: 'America/Toronto', admin1: 'Ontario', country: 'Canada' },
+  { name: 'Vienna', latitude: 48.2082, longitude: 16.3738, timezone: 'Europe/Vienna', admin1: 'Vienna', country: 'Austria' },
+  { name: 'Warsaw', latitude: 52.2297, longitude: 21.0122, timezone: 'Europe/Warsaw', admin1: 'Masovian', country: 'Poland' },
+  { name: 'Zurich', latitude: 47.3769, longitude: 8.5417, timezone: 'Europe/Zurich', admin1: 'Zurich', country: 'Switzerland' }
+];
+function placeLabel(p) {
+  return p.name + (p.admin1 ? ', ' + p.admin1 : '') + (p.country ? ', ' + p.country : '');
+}
+function setPlaceResults(list) {
+  const sel = document.getElementById('places');
+  sel.replaceChildren();
+  list.forEach(p => {
+    const o = document.createElement('option');
+    o.value = JSON.stringify({ name: p.name, latitude: p.latitude, longitude: p.longitude, timezone: p.timezone || '' });
+    o.textContent = placeLabel(p);
+    sel.appendChild(o);
+  });
+}
+function filterOfflineCities(q) {
+  const needle = q.trim().toLowerCase();
+  if (!needle) return OFFLINE_CITIES.slice(0, 8);
+  return OFFLINE_CITIES.filter(p =>
+    p.name.toLowerCase().includes(needle) ||
+    (p.admin1 && p.admin1.toLowerCase().includes(needle)) ||
+    (p.country && p.country.toLowerCase().includes(needle))
+  ).slice(0, 8);
+}
+async function saveWeatherPlace(p) {
+  const cfg = await api('/api/config', { headers: hdr() });
+  cfg.location = p.name;
+  cfg.latitude = p.latitude;
+  cfg.longitude = p.longitude;
+  cfg.location_ready = true;
+  const tz = p.timezone || document.getElementById('timezone').value;
+  if (tz) {
+    cfg.timezone = tz;
+    const tzSel = document.getElementById('timezone');
+    if (![...tzSel.options].some(o => o.value === tz)) {
+      const o = document.createElement('option');
+      o.value = tz;
+      o.textContent = tz;
+      tzSel.appendChild(o);
+    }
+    tzSel.value = tz;
+  }
+  cfg.units = document.getElementById('units').value;
+  cfg.clock24 = document.getElementById('clock24').value === '1';
+  await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
+  paint();
+  status(tr('placeSaved').replace('%s', p.name), true);
+}
+(function fillQuickPicks() {
+  const box = document.getElementById('quickPicks');
+  OFFLINE_CITIES.forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c.name;
+    b.onclick = () => {
+      document.getElementById('place').value = c.name;
+      setPlaceResults([c]);
+      document.getElementById('places').selectedIndex = 0;
+      status(placeLabel(c), true);
+    };
+    box.appendChild(b);
+  });
+})();
+document.getElementById('searchBtn').onclick = async () => {
+  try {
+    const q = document.getElementById('place').value.trim();
+    if (!q) return status(tr('typePlace'), false);
+    let results = null;
+    try {
+      const j = await api('/api/places/search?name=' + encodeURIComponent(q) + '&count=8', { headers: hdr() });
+      results = j.results || [];
+    } catch (e1) {
+      const offline = e1.status === 503 && /offline/i.test(e1.message || '');
+      try {
+        const j = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=8').then(r => r.json());
+        results = j.results || [];
+      } catch (e2) {
+        results = filterOfflineCities(q);
+        if (!results.length) {
+          return status(offline ? tr('searchDeviceOffline') : tr('searchNeeds'), false);
+        }
+        status(tr('searchOfflineList'), true);
+      }
+    }
+    setPlaceResults(results);
+    if (!results.length) status(tr('noPlaces'), false);
+    else {
+      document.getElementById('places').selectedIndex = 0;
+      status(tr('placesCount').replace('%n', results.length), true);
+    }
+  } catch (e) { status(tr('searchNeeds'), false); }
+};
+document.getElementById('locBtn').onclick = async () => {
+  try {
+    const sel = document.getElementById('places');
+    if (!sel.value) return status(tr('pickPlace'), false);
+    await saveWeatherPlace(JSON.parse(sel.value));
+  } catch (e) { status(e.message, false); }
+};
+document.getElementById('manualBtn').onclick = async () => {
+  try {
+    const name = document.getElementById('manualName').value.trim() || document.getElementById('place').value.trim();
+    const lat = parseFloat(document.getElementById('manualLat').value);
+    const lon = parseFloat(document.getElementById('manualLon').value);
+    if (!name) return status(tr('needManualName'), false);
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) {
+      return status(tr('invalidCoords'), false);
+    }
+    await saveWeatherPlace({ name, latitude: lat, longitude: lon, timezone: document.getElementById('timezone').value });
+  } catch (e) { status(e.message, false); }
+};
+document.getElementById('deskBtn').onclick = async () => {
+  const btn = document.getElementById('deskBtn');
+  btn.disabled = true;
+  showSave(tr('saving'), null);
+  try {
+    const cfg = await api('/api/config', { headers: hdr() });
+    cfg.units = document.getElementById('units').value;
+    cfg.clock24 = document.getElementById('clock24').value === '1';
+    const zone = document.getElementById('timezone').value;
+    if (zone) cfg.timezone = zone;
+    cfg.locale = document.getElementById('language').value || 'en';
+    localStorage.setItem('jazztrixLang', cfg.locale);
+    await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
+    const body = {
+      nfc_label: document.getElementById('nfc').value,
+      brush: +document.getElementById('brush').value,
+      paper: +document.getElementById('paper').value,
+      dark_mode: document.getElementById('darkMode').checked,
+      unit_suffix: document.getElementById('unitSuffix').checked,
+      upper_titles: document.getElementById('upperTitles').checked,
+      wind_unit: +document.getElementById('windUnit').value,
+      forecast_hours: +document.getElementById('forecastHours').value,
+      forecast_style: +document.getElementById('forecastStyle').value,
+      borders: (document.getElementById('bFrameForecast').checked ? 1 : 0) |
+        (document.getElementById('bFrameDegrees').checked ? 2 : 0) |
+        (document.getElementById('bFrameSky').checked ? 4 : 0) |
+        (document.getElementById('bFrameTiles').checked ? 8 : 0) |
+        (document.getElementById('bFrameBrew').checked ? 16 : 0) |
+        (document.getElementById('bFrameRadio').checked ? 32 : 0) |
+        (document.getElementById('bFrameHaiku').checked ? 64 : 0),
+      haiku_pick: +document.getElementById('haikuPick').value || 0,
+      theme_preset: +document.getElementById('themePreset').value,
+      color_bar: +document.getElementById('colorBar').value,
+      color_accent: +document.getElementById('colorAccent').value,
+      color_alert: +document.getElementById('colorAlert').value,
+      color_hi: +document.getElementById('colorHi').value,
+      color_lo: +document.getElementById('colorLo').value,
+      toolbar_order: parseOrder(document.getElementById('toolbarOrder').value),
+      metric_order: parseOrder(document.getElementById('metricOrder').value),
+      foot_order: parseOrder(document.getElementById('footOrder').value),
+      date_format: +document.getElementById('dateFormat').value,
+      weekday_style: +document.getElementById('weekdayStyle').value,
+      toolbar_visible: visBits([0,1,2,3,4,5], ['tbPlace','tbClock','tbWifi','tbBatt','tbDate','tbWeekday']),
+      metric_visible: visBits([0,1,2,3,4], ['mWind','mRain','mPress','mAir','mUv']),
+      block_visible: (document.getElementById('bTemp').checked ? 1 : 0) |
+        (document.getElementById('bForecast').checked ? 2 : 0) |
+        (document.getElementById('bCoffee').checked ? 4 : 0) |
+        (document.getElementById('bRadio').checked ? 8 : 0) |
+        (document.getElementById('bHaiku').checked ? 16 : 0),
+      radios: readStations()
+    };
+    await api('/api/desk', { method: 'PUT', headers: hdr(), body: JSON.stringify(body) });
+    showSave(tr('savedPaper'), true);
+  } catch (e) { showSave(e.message, false); }
+  finally { btn.disabled = false; }
+};
 async function pushLocale() {
   const locale = document.getElementById('language').value || 'en';
   try {

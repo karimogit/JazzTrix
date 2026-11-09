@@ -20,7 +20,7 @@ Double-tap the round button. The display opens a setup window for about five min
 2. Open `http://192.168.4.1`.
 3. Enter the code from the display.
 
-The page stays on that code until the phone is paired. Then it opens the rest of the settings. A phone that already paired skips the code. From there you can save the home Wi-Fi network, search for a weather place, and change the dashboard.
+The page stays on that code until the phone is paired. Then it opens the rest of the settings. A phone that already paired skips the code. From there you can save the home Wi-Fi network, set a weather place (search when online, or quick picks / coordinates offline), and change the dashboard.
 
 The home network name and password are stored only in the device’s `home_nvs` partition. They are not in this repository. A full flash backup can contain them.
 
@@ -44,7 +44,7 @@ The paper redraws on its own at most every four hours, and not between 00:00 and
 
 Setup stores these choices on the device:
 
-- **Weather place:** searched from the setup page. Nothing is hard-coded.
+- **Weather place:** search (via the device when it is on home Wi‑Fi, or the phone when it has internet), quick-pick cities, or manual coordinates — all from the setup page, including on **JazzTrix-Setup** with no phone data.
 - **Top bar:** order and visibility for weekday, date, time, place, Wi-Fi, and battery. Each one has a switch. The clock follows the place’s time zone. Date format, 12 or 24 hour time, and the time zone can be changed in setup.
 - **Metric tiles:** Wind, Rain, Press, Air, and UV. Each tile can be shown or hidden, and the row can be reordered.
 - **Unit suffix:** optional, for example `Wind (m/s)` or `Press (hPa)`.

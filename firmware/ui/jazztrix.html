@@ -233,7 +233,15 @@
   #customColors.off { display: none; }
   .pig-row { margin-top: .55rem; }
   .pig-row span { display: block; font-size: .78rem; font-weight: 700; margin-bottom: .25rem; }
-  select.places { width: 100%; margin-top: .5rem; border-radius: 12px; border: 1px solid var(--line); background: #fff; min-height: 6.5rem; font: inherit; padding: .3rem; }
+  .places { display: flex; flex-direction: column; gap: .35rem; margin-top: .5rem; }
+  .places:empty { display: none; }
+  .places button {
+    width: 100%; text-align: left; font: inherit; font-size: .92rem; font-weight: 650;
+    padding: .6rem .75rem; border-radius: 12px; border: 1px solid var(--line);
+    background: #fff; color: var(--ink); cursor: pointer;
+  }
+  .places button.on { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  button.ghost:disabled, button.action:disabled { opacity: .55; }
   details.coords { margin-top: .85rem; border: 1px solid var(--line); border-radius: 12px; padding: .55rem .65rem; background: #fff; }
   details.coords summary { cursor: pointer; font-weight: 800; font-size: .88rem; }
   details.coords .hint { margin-top: .45rem; }
@@ -313,7 +321,7 @@
     <p class="hint" data-i18n="weatherHint">Search for the place that should sit on the paper.</p>
     <label class="field"><span data-i18n="place">Place</span><input id="place" type="search" placeholder="Amsterdam, Lisbon, Kyoto…"></label>
     <button type="button" class="ghost" id="searchBtn" data-i18n="searchPlaces">Search places</button>
-    <select id="places" class="places" size="4"></select>
+    <div id="places" class="places" role="listbox" data-i18n-aria="place" aria-label="Place"></div>
     <button type="button" class="action" id="locBtn" data-i18n="usePlace">Use this place</button>
     <p class="hint" data-i18n="quickPicks">Quick picks (no internet)</p>
     <div class="chips" id="quickPicks"></div>
@@ -554,7 +562,7 @@ const I18N = {
     language: 'Language', languageHint: 'The paper and this page follow this language.',
     pairTitle: 'Pair this phone', pairHint: 'Type the six digits on the display.', pairCode: 'Pairing code', pairBtn: 'Pair',
     wifiTitle: 'Wi‑Fi', wifiHint: 'The home network. The password stays on the device.', network: 'Network name', password: 'Password', saveWifi: 'Save Wi‑Fi',
-    weatherTitle: 'Weather', weatherHint: 'Search, pick a quick city, or open Coordinates. Search uses the device when it is on home Wi‑Fi.', place: 'Place', searchPlaces: 'Search places', usePlace: 'Use this place',
+    weatherTitle: 'Weather', weatherHint: 'Search, pick a quick city, or open Coordinates. Search uses the device when it is on home Wi‑Fi.', place: 'Place', searchPlaces: 'Search places', searching: 'Searching…', usePlace: 'Use this place',
     quickPicks: 'Quick picks (no internet). Tap a city, then Use this place. The time zone updates with the city.', manualTitle: 'Coordinates', manualHint: 'Works on JazzTrix-Setup without internet. The name is what appears on the paper.',
     manualName: 'Name on paper', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Use these coordinates',
     temperature: 'Temperature', hoursAhead: 'Hours ahead', forecastShape: 'Forecast', shapeGraph: 'Graph', shapeBars: 'Bars', wind: 'Wind', unitTitle: 'Show the unit in the title',
@@ -607,7 +615,7 @@ const I18N = {
     language: 'Idioma', languageHint: 'El papel y esta página siguen este idioma.',
     pairTitle: 'Empareja este teléfono', pairHint: 'Escribe los seis dígitos de la pantalla.', pairCode: 'Código', pairBtn: 'Emparejar',
     wifiTitle: 'Wi‑Fi', wifiHint: 'La red de casa. La contraseña se queda en el aparato.', network: 'Nombre de la red', password: 'Contraseña', saveWifi: 'Guardar Wi‑Fi',
-    weatherTitle: 'Tiempo', weatherHint: 'Busca, elige una ciudad rápida o abre Coordenadas. La búsqueda usa el aparato cuando está en el Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Buscar lugares', usePlace: 'Usar este lugar',
+    weatherTitle: 'Tiempo', weatherHint: 'Busca, elige una ciudad rápida o abre Coordenadas. La búsqueda usa el aparato cuando está en el Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Buscar lugares', searching: 'Buscando…', usePlace: 'Usar este lugar',
     quickPicks: 'Accesos rápidos (sin internet). Toca una ciudad y luego Usar este lugar. La zona horaria cambia con la ciudad.', manualTitle: 'Coordenadas', manualHint: 'Funciona en JazzTrix-Setup sin internet. El nombre es el que sale en el papel.',
     manualName: 'Nombre en el papel', latitude: 'Latitud', longitude: 'Longitud', useManual: 'Usar estas coordenadas',
     temperature: 'Temperatura', hoursAhead: 'Horas por delante', forecastShape: 'Pronóstico', shapeGraph: 'Gráfica', shapeBars: 'Barras', wind: 'Viento', unitTitle: 'Mostrar la unidad en el título',
@@ -660,7 +668,7 @@ const I18N = {
     language: '语言', languageHint: '纸屏和本页都使用这个语言。',
     pairTitle: '配对这台手机', pairHint: '输入屏幕上的六位数字。', pairCode: '配对码', pairBtn: '配对',
     wifiTitle: 'Wi‑Fi', wifiHint: '家里的网络。密码只留在设备上。', network: '网络名称', password: '密码', saveWifi: '保存 Wi‑Fi',
-    weatherTitle: '天气', weatherHint: '搜索、点选快速城市，或打开坐标。设备连上家庭 Wi‑Fi 后，搜索由设备完成。', place: '地点', searchPlaces: '搜索地点', usePlace: '使用这个地点',
+    weatherTitle: '天气', weatherHint: '搜索、点选快速城市，或打开坐标。设备连上家庭 Wi‑Fi 后，搜索由设备完成。', place: '地点', searchPlaces: '搜索地点', searching: '正在搜索…', usePlace: '使用这个地点',
     quickPicks: '快速选择（无需互联网）。点一个城市，再点使用这个地点。时区会随城市更新。', manualTitle: '坐标', manualHint: '在 JazzTrix-Setup 上无需互联网即可使用。这个名称会显示在纸屏上。',
     manualName: '纸屏上的名称', latitude: '纬度', longitude: '经度', useManual: '使用这些坐标',
     temperature: '温度', hoursAhead: '未来小时', forecastShape: '预报', shapeGraph: '曲线', shapeBars: '柱状', wind: '风', unitTitle: '在标题里显示单位',
@@ -713,7 +721,7 @@ const I18N = {
     language: 'Sprache', languageHint: 'Papier und diese Seite folgen dieser Sprache.',
     pairTitle: 'Dieses Handy koppeln', pairHint: 'Tippe die sechs Ziffern vom Display.', pairCode: 'Kopplungscode', pairBtn: 'Koppeln',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Das Heimnetz. Das Passwort bleibt auf dem Gerät.', network: 'Netzname', password: 'Passwort', saveWifi: 'Wi‑Fi sichern',
-    weatherTitle: 'Wetter', weatherHint: 'Suchen, eine Schnellstadt wählen oder Koordinaten öffnen. Die Suche läuft über das Gerät, sobald es im Heim-WLAN ist.', place: 'Ort', searchPlaces: 'Orte suchen', usePlace: 'Diesen Ort nutzen',
+    weatherTitle: 'Wetter', weatherHint: 'Suchen, eine Schnellstadt wählen oder Koordinaten öffnen. Die Suche läuft über das Gerät, sobald es im Heim-WLAN ist.', place: 'Ort', searchPlaces: 'Orte suchen', searching: 'Suche läuft…', usePlace: 'Diesen Ort nutzen',
     quickPicks: 'Schnellauswahl (ohne Internet). Tippe eine Stadt, dann Diesen Ort nutzen. Die Zeitzone folgt der Stadt.', manualTitle: 'Koordinaten', manualHint: 'Geht im Netz JazzTrix-Setup ohne Internet. Der Name steht auf dem Papier.',
     manualName: 'Name auf dem Papier', latitude: 'Breitengrad', longitude: 'Längengrad', useManual: 'Diese Koordinaten nutzen',
     temperature: 'Temperatur', hoursAhead: 'Stunden voraus', forecastShape: 'Vorhersage', shapeGraph: 'Graph', shapeBars: 'Balken', wind: 'Wind', unitTitle: 'Einheit im Titel zeigen',
@@ -766,7 +774,7 @@ const I18N = {
     language: 'Langue', languageHint: 'Le papier et cette page suivent cette langue.',
     pairTitle: 'Appaire ce téléphone', pairHint: 'Tape les six chiffres de l’écran.', pairCode: 'Code', pairBtn: 'Appairer',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Le réseau de la maison. Le mot de passe reste sur l’appareil.', network: 'Nom du réseau', password: 'Mot de passe', saveWifi: 'Enregistrer le Wi‑Fi',
-    weatherTitle: 'Météo', weatherHint: 'Cherche, choisis une ville rapide, ou ouvre Coordonnées. La recherche passe par l’appareil quand il est sur le Wi‑Fi de la maison.', place: 'Lieu', searchPlaces: 'Chercher des lieux', usePlace: 'Utiliser ce lieu',
+    weatherTitle: 'Météo', weatherHint: 'Cherche, choisis une ville rapide, ou ouvre Coordonnées. La recherche passe par l’appareil quand il est sur le Wi‑Fi de la maison.', place: 'Lieu', searchPlaces: 'Chercher des lieux', searching: 'Recherche…', usePlace: 'Utiliser ce lieu',
     quickPicks: 'Raccourcis (sans internet). Touche une ville, puis Utiliser ce lieu. Le fuseau suit la ville.', manualTitle: 'Coordonnées', manualHint: 'Marche sur JazzTrix-Setup sans internet. Le nom apparaît sur le papier.',
     manualName: 'Nom sur le papier', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Utiliser ces coordonnées',
     temperature: 'Température', hoursAhead: 'Heures à venir', forecastShape: 'Prévision', shapeGraph: 'Courbe', shapeBars: 'Barres', wind: 'Vent', unitTitle: 'Montrer l’unité dans le titre',
@@ -819,7 +827,7 @@ const I18N = {
     language: 'Lingua', languageHint: 'La carta e questa pagina seguono questa lingua.',
     pairTitle: 'Abbina questo telefono', pairHint: 'Scrivi le sei cifre sullo schermo.', pairCode: 'Codice', pairBtn: 'Abbina',
     wifiTitle: 'Wi‑Fi', wifiHint: 'La rete di casa. La password resta sul dispositivo.', network: 'Nome della rete', password: 'Password', saveWifi: 'Salva Wi‑Fi',
-    weatherTitle: 'Meteo', weatherHint: 'Cerca, scegli una città rapida, o apri Coordinate. La ricerca usa il dispositivo quando è sulla Wi‑Fi di casa.', place: 'Luogo', searchPlaces: 'Cerca luoghi', usePlace: 'Usa questo luogo',
+    weatherTitle: 'Meteo', weatherHint: 'Cerca, scegli una città rapida, o apri Coordinate. La ricerca usa il dispositivo quando è sulla Wi‑Fi di casa.', place: 'Luogo', searchPlaces: 'Cerca luoghi', searching: 'Ricerca…', usePlace: 'Usa questo luogo',
     quickPicks: 'Scelte rapide (senza internet). Tocca una città, poi Usa questo luogo. Il fuso segue la città.', manualTitle: 'Coordinate', manualHint: 'Funziona su JazzTrix-Setup senza internet. Il nome compare sulla carta.',
     manualName: 'Nome sulla carta', latitude: 'Latitudine', longitude: 'Longitudine', useManual: 'Usa queste coordinate',
     temperature: 'Temperatura', hoursAhead: 'Ore avanti', forecastShape: 'Previsione', shapeGraph: 'Grafico', shapeBars: 'Barre', wind: 'Vento', unitTitle: 'Mostra l’unità nel titolo',
@@ -872,7 +880,7 @@ const I18N = {
     language: 'Idioma', languageHint: 'O papel e esta página seguem este idioma.',
     pairTitle: 'Emparelha este telefone', pairHint: 'Escreve os seis dígitos do ecrã.', pairCode: 'Código', pairBtn: 'Emparelhar',
     wifiTitle: 'Wi‑Fi', wifiHint: 'A rede de casa. A palavra-passe fica no aparelho.', network: 'Nome da rede', password: 'Palavra-passe', saveWifi: 'Guardar Wi‑Fi',
-    weatherTitle: 'Tempo', weatherHint: 'Procura, escolhe uma cidade rápida ou abre Coordenadas. A procura usa o aparelho quando está no Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Procurar lugares', usePlace: 'Usar este lugar',
+    weatherTitle: 'Tempo', weatherHint: 'Procura, escolhe uma cidade rápida ou abre Coordenadas. A procura usa o aparelho quando está no Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Procurar lugares', searching: 'A procurar…', usePlace: 'Usar este lugar',
     quickPicks: 'Escolhas rápidas (sem internet). Toca numa cidade e depois em Usar este lugar. O fuso horário segue a cidade.', manualTitle: 'Coordenadas', manualHint: 'Funciona em JazzTrix-Setup sem internet. O nome é o que aparece no papel.',
     manualName: 'Nome no papel', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Usar estas coordenadas',
     temperature: 'Temperatura', hoursAhead: 'Horas à frente', forecastShape: 'Previsão', shapeGraph: 'Gráfico', shapeBars: 'Barras', wind: 'Vento', unitTitle: 'Mostrar a unidade no título',
@@ -925,7 +933,7 @@ const I18N = {
     language: 'Taal', languageHint: 'Het papier en deze pagina volgen deze taal.',
     pairTitle: 'Koppel deze telefoon', pairHint: 'Typ de zes cijfers van het scherm.', pairCode: 'Koppelcode', pairBtn: 'Koppelen',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Het thuisnetwerk. Het wachtwoord blijft op het apparaat.', network: 'Netwerknaam', password: 'Wachtwoord', saveWifi: 'Wi‑Fi bewaren',
-    weatherTitle: 'Weer', weatherHint: 'Zoek, kies een snelle plaats, of open Coördinaten. Zoeken loopt via het apparaat zodra het op het thuisnetwerk zit.', place: 'Plaats', searchPlaces: 'Plaatsen zoeken', usePlace: 'Deze plaats gebruiken',
+    weatherTitle: 'Weer', weatherHint: 'Zoek, kies een snelle plaats, of open Coördinaten. Zoeken loopt via het apparaat zodra het op het thuisnetwerk zit.', place: 'Plaats', searchPlaces: 'Plaatsen zoeken', searching: 'Zoeken…', usePlace: 'Deze plaats gebruiken',
     quickPicks: 'Snelle keuzes (zonder internet). Tik een plaats, daarna Deze plaats gebruiken. De tijdzone volgt de plaats.', manualTitle: 'Coördinaten', manualHint: 'Werkt op JazzTrix-Setup zonder internet. De naam staat op het papier.',
     manualName: 'Naam op het papier', latitude: 'Breedtegraad', longitude: 'Lengtegraad', useManual: 'Deze coördinaten gebruiken',
     temperature: 'Temperatuur', hoursAhead: 'Uren vooruit', forecastShape: 'Verwachting', shapeGraph: 'Grafiek', shapeBars: 'Staven', wind: 'Wind', unitTitle: 'Eenheid in de titel tonen',
@@ -978,7 +986,7 @@ const I18N = {
     language: 'Język', languageHint: 'Papier i ta strona używają tego języka.',
     pairTitle: 'Sparuj ten telefon', pairHint: 'Wpisz sześć cyfr z ekranu.', pairCode: 'Kod parowania', pairBtn: 'Sparuj',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Sieć domowa. Hasło zostaje w urządzeniu.', network: 'Nazwa sieci', password: 'Hasło', saveWifi: 'Zapisz Wi‑Fi',
-    weatherTitle: 'Pogoda', weatherHint: 'Szukaj, wybierz szybkie miasto albo otwórz Współrzędne. Szukanie idzie przez urządzenie, gdy jest w domowym Wi‑Fi.', place: 'Miejsce', searchPlaces: 'Szukaj miejsc', usePlace: 'Użyj tego miejsca',
+    weatherTitle: 'Pogoda', weatherHint: 'Szukaj, wybierz szybkie miasto albo otwórz Współrzędne. Szukanie idzie przez urządzenie, gdy jest w domowym Wi‑Fi.', place: 'Miejsce', searchPlaces: 'Szukaj miejsc', searching: 'Szukam…', usePlace: 'Użyj tego miejsca',
     quickPicks: 'Szybki wybór (bez internetu). Stuknij miasto, potem Użyj tego miejsca. Strefa czasu podąża za miastem.', manualTitle: 'Współrzędne', manualHint: 'Działa w sieci JazzTrix-Setup bez internetu. Ta nazwa pojawia się na papierze.',
     manualName: 'Nazwa na papierze', latitude: 'Szerokość', longitude: 'Długość', useManual: 'Użyj tych współrzędnych',
     temperature: 'Temperatura', hoursAhead: 'Godziny do przodu', forecastShape: 'Prognoza', shapeGraph: 'Wykres', shapeBars: 'Słupki', wind: 'Wiatr', unitTitle: 'Pokaż jednostkę w tytule',
@@ -1683,17 +1691,51 @@ function applyPlaceTimezone(tz) {
   tzSel.value = tz;
   if (typeof paint === 'function') paint();
 }
+let placeHits = [];
+let placePick = -1;
+function utf8Bytes(s) {
+  let n = 0;
+  for (let i = 0; i < s.length;) {
+    const c = s.codePointAt(i);
+    i += c > 0xffff ? 2 : 1;
+    n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
+  }
+  return n;
+}
+function choosePlace(index) {
+  if (index < 0 || index >= placeHits.length) return;
+  placePick = index;
+  const box = document.getElementById('places');
+  [...box.children].forEach((el, n) => {
+    const on = n === index;
+    el.classList.toggle('on', on);
+    el.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const hit = placeHits[index];
+  document.getElementById('place').value = hit.name;
+  applyPlaceTimezone(hit.timezone);
+}
 function setPlaceResults(list) {
-  const sel = document.getElementById('places');
-  sel.replaceChildren();
+  const box = document.getElementById('places');
+  box.replaceChildren();
+  placeHits = [];
+  placePick = -1;
   (Array.isArray(list) ? list : []).forEach(p => {
     const lat = Number(p && p.latitude), lon = Number(p && p.longitude);
-    if (!p || typeof p.name !== 'string' || !p.name || !Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
-    const o = document.createElement('option');
-    o.value = JSON.stringify({ name: p.name, latitude: lat, longitude: lon, timezone: knownDeviceTimezone(p.timezone) });
-    o.textContent = placeLabel(p);
-    sel.appendChild(o);
+    if (!p || typeof p.name !== 'string' || !p.name || utf8Bytes(p.name) > 64) return;
+    if (!Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
+    const index = placeHits.length;
+    placeHits.push({ name: p.name, latitude: lat, longitude: lon, timezone: knownDeviceTimezone(p.timezone) });
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'hit';
+    b.setAttribute('role', 'option');
+    b.setAttribute('aria-selected', 'false');
+    b.textContent = placeLabel(p);
+    b.onclick = () => choosePlace(index);
+    box.appendChild(b);
   });
+  if (placeHits.length) choosePlace(0);
 }
 async function devicePlaceSearch(q) {
   const url = '/api/places/search?name=' + encodeURIComponent(q) + '&count=8';
@@ -1750,6 +1792,7 @@ async function saveWeatherPlace(p) {
   cfg.units = document.getElementById('units').value;
   cfg.clock24 = document.getElementById('clock24').value === '1';
   await api('/api/config', { method: 'PUT', headers: hdr(), body: JSON.stringify(cfg) });
+  document.getElementById('place').value = p.name;
   paint();
   status(tr('placeSaved').replace('%s', p.name), true);
 }
@@ -1762,17 +1805,24 @@ async function saveWeatherPlace(p) {
     b.onclick = () => {
       document.getElementById('place').value = c.name;
       setPlaceResults([c]);
-      document.getElementById('places').selectedIndex = 0;
-      applyPlaceTimezone(c.timezone);
       status(placeLabel(c), true);
     };
     box.appendChild(b);
   });
 })();
+document.getElementById('place').addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Enter') return;
+  ev.preventDefault();
+  document.getElementById('searchBtn').click();
+});
 document.getElementById('searchBtn').onclick = async () => {
+  const btn = document.getElementById('searchBtn');
+  const q = document.getElementById('place').value.trim();
+  if (!q) return status(tr('typePlace'), false);
+  if (btn.disabled) return;
+  btn.disabled = true;
+  status(tr('searching'), null);
   try {
-    const q = document.getElementById('place').value.trim();
-    if (!q) return status(tr('typePlace'), false);
     let results = null;
     let offline = false;
     let offlineList = false;
@@ -1780,42 +1830,42 @@ document.getElementById('searchBtn').onclick = async () => {
       results = await devicePlaceSearch(q);
     } catch (e1) {
       offline = e1.status === 503 && /offline/i.test(e1.message || '');
+      results = null;
+    }
+    if (!results || !results.length) {
       try {
-        results = await phonePlaceSearch(q);
-      } catch (e2) {
-        results = filterOfflineCities(q);
-        if (!results.length) {
-          return status(offline ? tr('searchDeviceOffline') : tr('searchNeeds'), false);
-        }
-        offlineList = true;
+        const phone = await phonePlaceSearch(q);
+        if (phone && phone.length) results = phone;
+      } catch (e2) {}
+    }
+    if (!results || !results.length) {
+      results = filterOfflineCities(q);
+      if (!results.length) {
+        setPlaceResults([]);
+        status(offline ? tr('searchDeviceOffline') : tr('searchNeeds'), false);
+        return;
       }
+      offlineList = true;
     }
     setPlaceResults(results);
-    const sel = document.getElementById('places');
-    if (!sel.options.length) status(tr('noPlaces'), false);
+    if (!placeHits.length) status(tr('noPlaces'), false);
     else {
-      sel.selectedIndex = 0;
-      try {
-        applyPlaceTimezone(JSON.parse(sel.value).timezone);
-      } catch (e) {}
-      const count = tr('placesCount').replace('%n', sel.options.length);
+      const count = tr('placesCount').replace('%n', placeHits.length);
       status(offlineList ? tr('searchOfflineList') + ' ' + count : count, true);
     }
   } catch (e) { status(tr('searchNeeds'), false); }
+  finally { btn.disabled = false; }
 };
-document.getElementById('places').addEventListener('change', () => {
-  const sel = document.getElementById('places');
-  if (!sel.value) return;
-  try {
-    applyPlaceTimezone(JSON.parse(sel.value).timezone);
-  } catch (e) {}
-});
 document.getElementById('locBtn').onclick = async () => {
+  const btn = document.getElementById('locBtn');
+  const p = placePick >= 0 ? placeHits[placePick] : null;
+  if (!p) return status(tr('pickPlace'), false);
+  if (btn.disabled) return;
+  btn.disabled = true;
   try {
-    const sel = document.getElementById('places');
-    if (!sel.value) return status(tr('pickPlace'), false);
-    await saveWeatherPlace(JSON.parse(sel.value));
+    await saveWeatherPlace(p);
   } catch (e) { status(e.message, false); }
+  finally { btn.disabled = false; }
 };
 document.getElementById('manualBtn').onclick = async () => {
   try {

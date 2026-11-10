@@ -607,7 +607,9 @@ const I18N = {
     language: 'Idioma', languageHint: 'El papel y esta página siguen este idioma.',
     pairTitle: 'Empareja este teléfono', pairHint: 'Escribe los seis dígitos de la pantalla.', pairCode: 'Código', pairBtn: 'Emparejar',
     wifiTitle: 'Wi‑Fi', wifiHint: 'La red de casa. La contraseña se queda en el aparato.', network: 'Nombre de la red', password: 'Contraseña', saveWifi: 'Guardar Wi‑Fi',
-    weatherTitle: 'Tiempo', weatherHint: 'Busca el lugar que debe salir en el papel.', place: 'Lugar', searchPlaces: 'Buscar lugares', usePlace: 'Usar este lugar',
+    weatherTitle: 'Tiempo', weatherHint: 'Busca, elige una ciudad rápida o abre Coordenadas. La búsqueda usa el aparato cuando está en el Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Buscar lugares', usePlace: 'Usar este lugar',
+    quickPicks: 'Accesos rápidos (sin internet). Toca una ciudad y luego Usar este lugar. La zona horaria cambia con la ciudad.', manualTitle: 'Coordenadas', manualHint: 'Funciona en JazzTrix-Setup sin internet. El nombre es el que sale en el papel.',
+    manualName: 'Nombre en el papel', latitude: 'Latitud', longitude: 'Longitud', useManual: 'Usar estas coordenadas',
     temperature: 'Temperatura', hoursAhead: 'Horas por delante', forecastShape: 'Pronóstico', shapeGraph: 'Gráfica', shapeBars: 'Barras', wind: 'Viento', unitTitle: 'Mostrar la unidad en el título',
     paperTitle: 'En el papel', paperHint: 'Apaga la temperatura o el pronóstico.',
     bottomTitle: 'Fila de abajo', bottomHint: 'Apaga una caja o muévela. Arriba es hacia la izquierda. Las cajas se reparten el ancho.',
@@ -630,7 +632,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'Las emisoras del botón redondo.', addStation: 'Añadir emisora', saveChanges: 'Guardar cambios',
     remove: 'Quitar', name: 'Nombre', address: 'Dirección',
     paired: 'Emparejado. El escritorio es tuyo.', loaded: 'Ajustes cargados.', wifiSaved: 'Wi‑Fi guardado en el aparato.',
-    typePlace: 'Escribe un lugar primero.', noPlaces: 'No hay lugares.', placesCount: '%n lugares.', searchNeeds: 'La búsqueda necesita internet.',
+    typePlace: 'Escribe un lugar primero.', noPlaces: 'No hay lugares.', placesCount: '%n lugares.', searchNeeds: 'La búsqueda necesita internet, o usa accesos rápidos o coordenadas.',
+    searchDeviceOffline: 'El aparato está sin conexión. Guarda primero el Wi‑Fi de casa, o usa accesos rápidos o coordenadas.',
+    searchOfflineList: 'Solo la lista sin conexión.', invalidCoords: 'Escribe una latitud y una longitud válidas.', needManualName: 'Escribe un nombre para el papel.',
     pickPlace: 'Elige un lugar.', placeSaved: '%s guardado.', savedPaper: 'Guardado. El papel se actualizará.', saving: 'Guardando…'
   },
   zh: {
@@ -656,7 +660,9 @@ const I18N = {
     language: '语言', languageHint: '纸屏和本页都使用这个语言。',
     pairTitle: '配对这台手机', pairHint: '输入屏幕上的六位数字。', pairCode: '配对码', pairBtn: '配对',
     wifiTitle: 'Wi‑Fi', wifiHint: '家里的网络。密码只留在设备上。', network: '网络名称', password: '密码', saveWifi: '保存 Wi‑Fi',
-    weatherTitle: '天气', weatherHint: '搜索要显示在纸屏上的地点。', place: '地点', searchPlaces: '搜索地点', usePlace: '使用这个地点',
+    weatherTitle: '天气', weatherHint: '搜索、点选快速城市，或打开坐标。设备连上家庭 Wi‑Fi 后，搜索由设备完成。', place: '地点', searchPlaces: '搜索地点', usePlace: '使用这个地点',
+    quickPicks: '快速选择（无需互联网）。点一个城市，再点使用这个地点。时区会随城市更新。', manualTitle: '坐标', manualHint: '在 JazzTrix-Setup 上无需互联网即可使用。这个名称会显示在纸屏上。',
+    manualName: '纸屏上的名称', latitude: '纬度', longitude: '经度', useManual: '使用这些坐标',
     temperature: '温度', hoursAhead: '未来小时', forecastShape: '预报', shapeGraph: '曲线', shapeBars: '柱状', wind: '风', unitTitle: '在标题里显示单位',
     paperTitle: '纸屏上', paperHint: '可以关掉温度或预报。',
     bottomTitle: '底栏', bottomHint: '可以关掉一格，或调整顺序。向上是往左边。格子会自动平分宽度。',
@@ -679,7 +685,9 @@ const I18N = {
     radioTitle: '电台', radioHint: '圆按钮播放的电台。', addStation: '添加电台', saveChanges: '保存更改',
     remove: '删除', name: '名称', address: '地址',
     paired: '已配对。这张桌子归你了。', loaded: '设置已载入。', wifiSaved: 'Wi‑Fi 已存在设备上。',
-    typePlace: '请先输入地点。', noPlaces: '没有找到地点。', placesCount: '%n 个地点。', searchNeeds: '搜索需要互联网。',
+    typePlace: '请先输入地点。', noPlaces: '没有找到地点。', placesCount: '%n 个地点。', searchNeeds: '搜索需要互联网，或使用快速选择或坐标。',
+    searchDeviceOffline: '设备离线。请先保存家庭 Wi‑Fi，或使用快速选择或坐标。',
+    searchOfflineList: '仅离线列表。', invalidCoords: '请输入有效的纬度和经度。', needManualName: '请输入显示在纸屏上的名称。',
     pickPlace: '请选择一个地点。', placeSaved: '已保存 %s。', savedPaper: '已保存。纸屏会刷新。', saving: '正在保存…'
   },
   de: {
@@ -705,7 +713,9 @@ const I18N = {
     language: 'Sprache', languageHint: 'Papier und diese Seite folgen dieser Sprache.',
     pairTitle: 'Dieses Handy koppeln', pairHint: 'Tippe die sechs Ziffern vom Display.', pairCode: 'Kopplungscode', pairBtn: 'Koppeln',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Das Heimnetz. Das Passwort bleibt auf dem Gerät.', network: 'Netzname', password: 'Passwort', saveWifi: 'Wi‑Fi sichern',
-    weatherTitle: 'Wetter', weatherHint: 'Suche den Ort, der auf dem Papier stehen soll.', place: 'Ort', searchPlaces: 'Orte suchen', usePlace: 'Diesen Ort nutzen',
+    weatherTitle: 'Wetter', weatherHint: 'Suchen, eine Schnellstadt wählen oder Koordinaten öffnen. Die Suche läuft über das Gerät, sobald es im Heim-WLAN ist.', place: 'Ort', searchPlaces: 'Orte suchen', usePlace: 'Diesen Ort nutzen',
+    quickPicks: 'Schnellauswahl (ohne Internet). Tippe eine Stadt, dann Diesen Ort nutzen. Die Zeitzone folgt der Stadt.', manualTitle: 'Koordinaten', manualHint: 'Geht im Netz JazzTrix-Setup ohne Internet. Der Name steht auf dem Papier.',
+    manualName: 'Name auf dem Papier', latitude: 'Breitengrad', longitude: 'Längengrad', useManual: 'Diese Koordinaten nutzen',
     temperature: 'Temperatur', hoursAhead: 'Stunden voraus', forecastShape: 'Vorhersage', shapeGraph: 'Graph', shapeBars: 'Balken', wind: 'Wind', unitTitle: 'Einheit im Titel zeigen',
     paperTitle: 'Auf dem Papier', paperHint: 'Schalte die Temperatur oder die Vorhersage aus.',
     bottomTitle: 'Untere Reihe', bottomHint: 'Schalte ein Feld aus oder verschiebe es. Hoch heißt nach links. Die Felder teilen sich die Breite.',
@@ -728,7 +738,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'Die Sender der runden Taste.', addStation: 'Sender hinzufügen', saveChanges: 'Änderungen sichern',
     remove: 'Entfernen', name: 'Name', address: 'Adresse',
     paired: 'Gekoppelt. Der Tisch gehört dir.', loaded: 'Einstellungen geladen.', wifiSaved: 'Wi‑Fi auf dem Gerät gesichert.',
-    typePlace: 'Zuerst einen Ort tippen.', noPlaces: 'Keine Orte gefunden.', placesCount: '%n Orte.', searchNeeds: 'Die Suche braucht Internet.',
+    typePlace: 'Zuerst einen Ort tippen.', noPlaces: 'Keine Orte gefunden.', placesCount: '%n Orte.', searchNeeds: 'Die Suche braucht Internet, oder nutze die Schnellauswahl oder Koordinaten.',
+    searchDeviceOffline: 'Das Gerät ist offline. Zuerst das Heim-WLAN speichern, oder Schnellauswahl oder Koordinaten nutzen.',
+    searchOfflineList: 'Nur die Offlineliste.', invalidCoords: 'Gültigen Breiten- und Längengrad eingeben.', needManualName: 'Einen Namen für das Papier eingeben.',
     pickPlace: 'Wähle einen Ort.', placeSaved: '%s gesichert.', savedPaper: 'Gesichert. Das Papier aktualisiert sich.', saving: 'Wird gesichert…'
   },
   fr: {
@@ -754,7 +766,9 @@ const I18N = {
     language: 'Langue', languageHint: 'Le papier et cette page suivent cette langue.',
     pairTitle: 'Appaire ce téléphone', pairHint: 'Tape les six chiffres de l’écran.', pairCode: 'Code', pairBtn: 'Appairer',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Le réseau de la maison. Le mot de passe reste sur l’appareil.', network: 'Nom du réseau', password: 'Mot de passe', saveWifi: 'Enregistrer le Wi‑Fi',
-    weatherTitle: 'Météo', weatherHint: 'Cherche le lieu qui doit apparaître sur le papier.', place: 'Lieu', searchPlaces: 'Chercher des lieux', usePlace: 'Utiliser ce lieu',
+    weatherTitle: 'Météo', weatherHint: 'Cherche, choisis une ville rapide, ou ouvre Coordonnées. La recherche passe par l’appareil quand il est sur le Wi‑Fi de la maison.', place: 'Lieu', searchPlaces: 'Chercher des lieux', usePlace: 'Utiliser ce lieu',
+    quickPicks: 'Raccourcis (sans internet). Touche une ville, puis Utiliser ce lieu. Le fuseau suit la ville.', manualTitle: 'Coordonnées', manualHint: 'Marche sur JazzTrix-Setup sans internet. Le nom apparaît sur le papier.',
+    manualName: 'Nom sur le papier', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Utiliser ces coordonnées',
     temperature: 'Température', hoursAhead: 'Heures à venir', forecastShape: 'Prévision', shapeGraph: 'Courbe', shapeBars: 'Barres', wind: 'Vent', unitTitle: 'Montrer l’unité dans le titre',
     paperTitle: 'Sur le papier', paperHint: 'Éteins la température ou la prévision.',
     bottomTitle: 'Rangée du bas', bottomHint: 'Éteins une case ou déplace-la. Haut va vers la gauche. Les cases se partagent la largeur.',
@@ -777,7 +791,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'Les stations du bouton rond.', addStation: 'Ajouter une station', saveChanges: 'Enregistrer',
     remove: 'Retirer', name: 'Nom', address: 'Adresse',
     paired: 'Appairé. Le bureau est à toi.', loaded: 'Réglages chargés.', wifiSaved: 'Wi‑Fi enregistré sur l’appareil.',
-    typePlace: 'Écris d’abord un lieu.', noPlaces: 'Aucun lieu.', placesCount: '%n lieux.', searchNeeds: 'La recherche a besoin d’internet.',
+    typePlace: 'Écris d’abord un lieu.', noPlaces: 'Aucun lieu.', placesCount: '%n lieux.', searchNeeds: 'La recherche a besoin d’internet, ou utilise les raccourcis ou les coordonnées.',
+    searchDeviceOffline: 'L’appareil est hors ligne. Enregistre d’abord le Wi‑Fi de la maison, ou utilise les raccourcis ou les coordonnées.',
+    searchOfflineList: 'Liste hors ligne seulement.', invalidCoords: 'Entre une latitude et une longitude valides.', needManualName: 'Entre un nom pour le papier.',
     pickPlace: 'Choisis un lieu.', placeSaved: '%s enregistré.', savedPaper: 'Enregistré. Le papier va se rafraîchir.', saving: 'Enregistrement…'
   },
   it: {
@@ -803,7 +819,9 @@ const I18N = {
     language: 'Lingua', languageHint: 'La carta e questa pagina seguono questa lingua.',
     pairTitle: 'Abbina questo telefono', pairHint: 'Scrivi le sei cifre sullo schermo.', pairCode: 'Codice', pairBtn: 'Abbina',
     wifiTitle: 'Wi‑Fi', wifiHint: 'La rete di casa. La password resta sul dispositivo.', network: 'Nome della rete', password: 'Password', saveWifi: 'Salva Wi‑Fi',
-    weatherTitle: 'Meteo', weatherHint: 'Cerca il luogo che deve stare sulla carta.', place: 'Luogo', searchPlaces: 'Cerca luoghi', usePlace: 'Usa questo luogo',
+    weatherTitle: 'Meteo', weatherHint: 'Cerca, scegli una città rapida, o apri Coordinate. La ricerca usa il dispositivo quando è sulla Wi‑Fi di casa.', place: 'Luogo', searchPlaces: 'Cerca luoghi', usePlace: 'Usa questo luogo',
+    quickPicks: 'Scelte rapide (senza internet). Tocca una città, poi Usa questo luogo. Il fuso segue la città.', manualTitle: 'Coordinate', manualHint: 'Funziona su JazzTrix-Setup senza internet. Il nome compare sulla carta.',
+    manualName: 'Nome sulla carta', latitude: 'Latitudine', longitude: 'Longitudine', useManual: 'Usa queste coordinate',
     temperature: 'Temperatura', hoursAhead: 'Ore avanti', forecastShape: 'Previsione', shapeGraph: 'Grafico', shapeBars: 'Barre', wind: 'Vento', unitTitle: 'Mostra l’unità nel titolo',
     paperTitle: 'Sulla carta', paperHint: 'Spegni la temperatura o la previsione.',
     bottomTitle: 'Riga in basso', bottomHint: 'Spegni una casella o spostala. Su va verso sinistra. Le caselle si dividono la larghezza.',
@@ -826,7 +844,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'Le stazioni del pulsante rotondo.', addStation: 'Aggiungi una stazione', saveChanges: 'Salva le modifiche',
     remove: 'Rimuovi', name: 'Nome', address: 'Indirizzo',
     paired: 'Abbinato. La scrivania è tua.', loaded: 'Impostazioni caricate.', wifiSaved: 'Wi‑Fi salvato sul dispositivo.',
-    typePlace: 'Scrivi prima un luogo.', noPlaces: 'Nessun luogo.', placesCount: '%n luoghi.', searchNeeds: 'La ricerca ha bisogno di internet.',
+    typePlace: 'Scrivi prima un luogo.', noPlaces: 'Nessun luogo.', placesCount: '%n luoghi.', searchNeeds: 'La ricerca ha bisogno di internet, oppure usa le scelte rapide o le coordinate.',
+    searchDeviceOffline: 'Il dispositivo è offline. Salva prima il Wi‑Fi di casa, oppure usa le scelte rapide o le coordinate.',
+    searchOfflineList: 'Solo l’elenco offline.', invalidCoords: 'Inserisci latitudine e longitudine valide.', needManualName: 'Inserisci un nome per la carta.',
     pickPlace: 'Scegli un luogo.', placeSaved: '%s salvato.', savedPaper: 'Salvato. La carta si aggiorna.', saving: 'Salvataggio…'
   },
   pt: {
@@ -852,7 +872,9 @@ const I18N = {
     language: 'Idioma', languageHint: 'O papel e esta página seguem este idioma.',
     pairTitle: 'Emparelha este telefone', pairHint: 'Escreve os seis dígitos do ecrã.', pairCode: 'Código', pairBtn: 'Emparelhar',
     wifiTitle: 'Wi‑Fi', wifiHint: 'A rede de casa. A palavra-passe fica no aparelho.', network: 'Nome da rede', password: 'Palavra-passe', saveWifi: 'Guardar Wi‑Fi',
-    weatherTitle: 'Tempo', weatherHint: 'Procura o lugar que deve ficar no papel.', place: 'Lugar', searchPlaces: 'Procurar lugares', usePlace: 'Usar este lugar',
+    weatherTitle: 'Tempo', weatherHint: 'Procura, escolhe uma cidade rápida ou abre Coordenadas. A procura usa o aparelho quando está no Wi‑Fi de casa.', place: 'Lugar', searchPlaces: 'Procurar lugares', usePlace: 'Usar este lugar',
+    quickPicks: 'Escolhas rápidas (sem internet). Toca numa cidade e depois em Usar este lugar. O fuso horário segue a cidade.', manualTitle: 'Coordenadas', manualHint: 'Funciona em JazzTrix-Setup sem internet. O nome é o que aparece no papel.',
+    manualName: 'Nome no papel', latitude: 'Latitude', longitude: 'Longitude', useManual: 'Usar estas coordenadas',
     temperature: 'Temperatura', hoursAhead: 'Horas à frente', forecastShape: 'Previsão', shapeGraph: 'Gráfico', shapeBars: 'Barras', wind: 'Vento', unitTitle: 'Mostrar a unidade no título',
     paperTitle: 'No papel', paperHint: 'Desliga a temperatura ou a previsão.',
     bottomTitle: 'Fila de baixo', bottomHint: 'Desliga uma caixa ou move-a. Para cima é para a esquerda. As caixas partilham a largura.',
@@ -875,7 +897,9 @@ const I18N = {
     radioTitle: 'Rádio', radioHint: 'As estações do botão redondo.', addStation: 'Adicionar estação', saveChanges: 'Guardar alterações',
     remove: 'Remover', name: 'Nome', address: 'Endereço',
     paired: 'Emparelhado. A secretária é tua.', loaded: 'Definições carregadas.', wifiSaved: 'Wi‑Fi guardado no aparelho.',
-    typePlace: 'Escreve primeiro um lugar.', noPlaces: 'Nenhum lugar.', placesCount: '%n lugares.', searchNeeds: 'A procura precisa de internet.',
+    typePlace: 'Escreve primeiro um lugar.', noPlaces: 'Nenhum lugar.', placesCount: '%n lugares.', searchNeeds: 'A procura precisa de internet, ou usa as escolhas rápidas ou as coordenadas.',
+    searchDeviceOffline: 'O aparelho está offline. Guarda primeiro o Wi‑Fi de casa, ou usa as escolhas rápidas ou as coordenadas.',
+    searchOfflineList: 'Só a lista offline.', invalidCoords: 'Escreve uma latitude e uma longitude válidas.', needManualName: 'Escreve um nome para o papel.',
     pickPlace: 'Escolhe um lugar.', placeSaved: '%s guardado.', savedPaper: 'Guardado. O papel vai atualizar.', saving: 'A guardar…'
   },
   nl: {
@@ -901,7 +925,9 @@ const I18N = {
     language: 'Taal', languageHint: 'Het papier en deze pagina volgen deze taal.',
     pairTitle: 'Koppel deze telefoon', pairHint: 'Typ de zes cijfers van het scherm.', pairCode: 'Koppelcode', pairBtn: 'Koppelen',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Het thuisnetwerk. Het wachtwoord blijft op het apparaat.', network: 'Netwerknaam', password: 'Wachtwoord', saveWifi: 'Wi‑Fi bewaren',
-    weatherTitle: 'Weer', weatherHint: 'Zoek de plaats die op het papier moet staan.', place: 'Plaats', searchPlaces: 'Plaatsen zoeken', usePlace: 'Deze plaats gebruiken',
+    weatherTitle: 'Weer', weatherHint: 'Zoek, kies een snelle plaats, of open Coördinaten. Zoeken loopt via het apparaat zodra het op het thuisnetwerk zit.', place: 'Plaats', searchPlaces: 'Plaatsen zoeken', usePlace: 'Deze plaats gebruiken',
+    quickPicks: 'Snelle keuzes (zonder internet). Tik een plaats, daarna Deze plaats gebruiken. De tijdzone volgt de plaats.', manualTitle: 'Coördinaten', manualHint: 'Werkt op JazzTrix-Setup zonder internet. De naam staat op het papier.',
+    manualName: 'Naam op het papier', latitude: 'Breedtegraad', longitude: 'Lengtegraad', useManual: 'Deze coördinaten gebruiken',
     temperature: 'Temperatuur', hoursAhead: 'Uren vooruit', forecastShape: 'Verwachting', shapeGraph: 'Grafiek', shapeBars: 'Staven', wind: 'Wind', unitTitle: 'Eenheid in de titel tonen',
     paperTitle: 'Op het papier', paperHint: 'Zet de temperatuur of de verwachting uit.',
     bottomTitle: 'Onderste rij', bottomHint: 'Zet een vak uit of verplaats het. Omhoog is naar links. De vakken delen de breedte.',
@@ -924,7 +950,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'De zenders van de ronde knop.', addStation: 'Zender toevoegen', saveChanges: 'Wijzigingen bewaren',
     remove: 'Weghalen', name: 'Naam', address: 'Adres',
     paired: 'Gekoppeld. Het bureau is van jou.', loaded: 'Instellingen geladen.', wifiSaved: 'Wi‑Fi op het apparaat bewaard.',
-    typePlace: 'Typ eerst een plaats.', noPlaces: 'Geen plaatsen.', placesCount: '%n plaatsen.', searchNeeds: 'Zoeken heeft internet nodig.',
+    typePlace: 'Typ eerst een plaats.', noPlaces: 'Geen plaatsen.', placesCount: '%n plaatsen.', searchNeeds: 'Zoeken heeft internet nodig, of gebruik snelle keuzes of coördinaten.',
+    searchDeviceOffline: 'Het apparaat is offline. Bewaar eerst het thuisnetwerk, of gebruik snelle keuzes of coördinaten.',
+    searchOfflineList: 'Alleen de offlinelijst.', invalidCoords: 'Vul een geldige breedte- en lengtegraad in.', needManualName: 'Vul een naam voor het papier in.',
     pickPlace: 'Kies een plaats.', placeSaved: '%s bewaard.', savedPaper: 'Bewaard. Het papier ververst.', saving: 'Bezig met bewaren…'
   },
   pl: {
@@ -950,7 +978,9 @@ const I18N = {
     language: 'Język', languageHint: 'Papier i ta strona używają tego języka.',
     pairTitle: 'Sparuj ten telefon', pairHint: 'Wpisz sześć cyfr z ekranu.', pairCode: 'Kod parowania', pairBtn: 'Sparuj',
     wifiTitle: 'Wi‑Fi', wifiHint: 'Sieć domowa. Hasło zostaje w urządzeniu.', network: 'Nazwa sieci', password: 'Hasło', saveWifi: 'Zapisz Wi‑Fi',
-    weatherTitle: 'Pogoda', weatherHint: 'Szukaj miejsca, które ma być na papierze.', place: 'Miejsce', searchPlaces: 'Szukaj miejsc', usePlace: 'Użyj tego miejsca',
+    weatherTitle: 'Pogoda', weatherHint: 'Szukaj, wybierz szybkie miasto albo otwórz Współrzędne. Szukanie idzie przez urządzenie, gdy jest w domowym Wi‑Fi.', place: 'Miejsce', searchPlaces: 'Szukaj miejsc', usePlace: 'Użyj tego miejsca',
+    quickPicks: 'Szybki wybór (bez internetu). Stuknij miasto, potem Użyj tego miejsca. Strefa czasu podąża za miastem.', manualTitle: 'Współrzędne', manualHint: 'Działa w sieci JazzTrix-Setup bez internetu. Ta nazwa pojawia się na papierze.',
+    manualName: 'Nazwa na papierze', latitude: 'Szerokość', longitude: 'Długość', useManual: 'Użyj tych współrzędnych',
     temperature: 'Temperatura', hoursAhead: 'Godziny do przodu', forecastShape: 'Prognoza', shapeGraph: 'Wykres', shapeBars: 'Słupki', wind: 'Wiatr', unitTitle: 'Pokaż jednostkę w tytule',
     paperTitle: 'Na papierze', paperHint: 'Wyłącz temperaturę albo prognozę.',
     bottomTitle: 'Dolny rząd', bottomHint: 'Wyłącz pole albo przesuń je. W górę znaczy w lewo. Pola dzielą szerokość.',
@@ -973,7 +1003,9 @@ const I18N = {
     radioTitle: 'Radio', radioHint: 'Stacje okrągłego przycisku.', addStation: 'Dodaj stację', saveChanges: 'Zapisz zmiany',
     remove: 'Usuń', name: 'Nazwa', address: 'Adres',
     paired: 'Sparowano. Biurko jest twoje.', loaded: 'Ustawienia wczytane.', wifiSaved: 'Wi‑Fi zapisane w urządzeniu.',
-    typePlace: 'Najpierw wpisz miejsce.', noPlaces: 'Brak miejsc.', placesCount: '%n miejsc.', searchNeeds: 'Wyszukiwanie potrzebuje internetu.',
+    typePlace: 'Najpierw wpisz miejsce.', noPlaces: 'Brak miejsc.', placesCount: '%n miejsc.', searchNeeds: 'Wyszukiwanie potrzebuje internetu albo użyj szybkiego wyboru lub współrzędnych.',
+    searchDeviceOffline: 'Urządzenie jest offline. Najpierw zapisz domowe Wi‑Fi albo użyj szybkiego wyboru lub współrzędnych.',
+    searchOfflineList: 'Tylko lista offline.', invalidCoords: 'Wpisz prawidłową szerokość i długość.', needManualName: 'Wpisz nazwę na papier.',
     pickPlace: 'Wybierz miejsce.', placeSaved: 'Zapisano %s.', savedPaper: 'Zapisano. Papier się odświeży.', saving: 'Zapisywanie…'
   }
 };
@@ -1502,6 +1534,7 @@ async function loadZones(current) {
       sel.appendChild(o);
     }
     if (cur) sel.value = cur;
+    sel.dataset.ready = '1';
   } catch (e) {
     if (current && !sel.options.length) {
       const o = document.createElement('option');
@@ -1630,7 +1663,15 @@ const OFFLINE_CITIES = [
 function placeLabel(p) {
   return p.name + (p.admin1 ? ', ' + p.admin1 : '') + (p.country ? ', ' + p.country : '');
 }
+function knownDeviceTimezone(tz) {
+  if (!tz || typeof tz !== 'string') return '';
+  const sel = document.getElementById('timezone');
+  if (sel.dataset.ready === '1' && [...sel.options].some(o => o.value === tz && !o.dataset.extra)) return tz;
+  if (OFFLINE_CITIES.some(c => c.timezone === tz)) return tz;
+  return '';
+}
 function applyPlaceTimezone(tz) {
+  tz = knownDeviceTimezone(tz);
   if (!tz) return;
   const tzSel = document.getElementById('timezone');
   if (![...tzSel.options].some(o => o.value === tz)) {
@@ -1649,7 +1690,7 @@ function setPlaceResults(list) {
     const lat = Number(p && p.latitude), lon = Number(p && p.longitude);
     if (!p || typeof p.name !== 'string' || !p.name || !Number.isFinite(lat) || lat < -90 || lat > 90 || !Number.isFinite(lon) || lon < -180 || lon > 180) return;
     const o = document.createElement('option');
-    o.value = JSON.stringify({ name: p.name, latitude: lat, longitude: lon, timezone: typeof p.timezone === 'string' ? p.timezone : '' });
+    o.value = JSON.stringify({ name: p.name, latitude: lat, longitude: lon, timezone: knownDeviceTimezone(p.timezone) });
     o.textContent = placeLabel(p);
     sel.appendChild(o);
   });
@@ -1681,7 +1722,7 @@ async function phonePlaceSearch(q) {
     const r = await fetch('https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(q) + '&count=8', { signal: ctrl.signal });
     if (!r.ok) throw new Error('search failed');
     const j = await r.json();
-    return j.results || [];
+    return (j.results || []).map(p => ({ ...p, timezone: knownDeviceTimezone(p.timezone) }));
   } finally {
     clearTimeout(timer);
   }
@@ -1734,6 +1775,7 @@ document.getElementById('searchBtn').onclick = async () => {
     if (!q) return status(tr('typePlace'), false);
     let results = null;
     let offline = false;
+    let offlineList = false;
     try {
       results = await devicePlaceSearch(q);
     } catch (e1) {
@@ -1745,7 +1787,7 @@ document.getElementById('searchBtn').onclick = async () => {
         if (!results.length) {
           return status(offline ? tr('searchDeviceOffline') : tr('searchNeeds'), false);
         }
-        status(tr('searchOfflineList'), true);
+        offlineList = true;
       }
     }
     setPlaceResults(results);
@@ -1756,7 +1798,8 @@ document.getElementById('searchBtn').onclick = async () => {
       try {
         applyPlaceTimezone(JSON.parse(sel.value).timezone);
       } catch (e) {}
-      status(tr('placesCount').replace('%n', sel.options.length), true);
+      const count = tr('placesCount').replace('%n', sel.options.length);
+      status(offlineList ? tr('searchOfflineList') + ' ' + count : count, true);
     }
   } catch (e) { status(tr('searchNeeds'), false); }
 };

@@ -184,10 +184,8 @@ static void round_tap_commit(int count)
     else
         desk_screen_only();
 }
-/* Held presses. OK/BOOT after two seconds opens the setup window (it always has). Up after two
- * seconds holds the picture, Down after five switches the display language, so the two jobs people
- * reach for most no longer need the panel. A press held for two to five seconds and
- * then let go asks the sources for fresh data; see the release path in the loop. */
+/* Held presses. The round button after about two seconds opens setup, and the same hold closes
+ * it while the window is open. Up or Down after about two seconds changes station. */
 static void long_action(int key)
 {
     if (key == 4) {
@@ -236,27 +234,6 @@ static void long_action(int key)
         return;
     }
     home_unlock();
-}
-/* Let go of a side button after two seconds: ask every source for fresh data. */
-static void refresh_action(void)
-{
-    home_lock();
-    if (!home_runtime.maintenance) {
-        unsigned wanted = home_sources_wanted(&home_runtime.config);
-        home_runtime.refresh_requested |= wanted;
-        /* The fresh data belongs on the screen the reader is looking at, and the reader has
-         * to see that the press did something even when the provider answers "not modified"
-         * and every pixel stays where it was. */
-        home_runtime.manual_until =
-            esp_timer_get_time() + (int64_t)home_runtime.config.pause_min * 60000000;
-        home_runtime.force_show = true;
-        if (!wanted) { /* nothing to download (Note or Sky only, no place yet): answer now */
-            home_runtime.dirty = true;
-            home_runtime.request_id++;
-        }
-    }
-    home_unlock();
-    ESP_LOGI(TAG, "Physical hold-and-release: refresh requested");
 }
 /* Which face of the "device" card is on screen, and whether the card has already been drawn. The
  * button needs both, and so does the loop: a press asks for another picture, and the loop must
@@ -474,11 +451,8 @@ static void buttons_tick(void)
             key_seen(key, held, "press");
             action(key);
         }
-    } else if (key == 2 && held >= INT64_C(2000000)) {
-        key_seen(key, held, "refresh");
-        refresh_action();
     } else
-        key_seen(key, held, "none"); /* between the windows: nothing to do, but it is on record */
+        key_seen(key, held, "none"); /* between a short press and a hold: nothing to do, but it is on record */
 }
 /* One turn of the main loop. Split out of app_main so the host simulation can drive it with a
  * fake clock, fake keys and a panel that costs its twenty-five seconds, and assert on the

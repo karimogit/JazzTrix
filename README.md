@@ -1,6 +1,6 @@
-# 🎷JazzTrix
+<h1 align="center">🎷 JazzTrix</h1>
 
-A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.
+<p align="center">A dashboard with jazz radio, live weather, a brew counter, and a daily haiku. A fully customizable experience, made your own.</p>
 
 <p align="center">
   <img src="docs/jazztrix.png" alt="JazzTrix showing the weather, forecast, brew count, radio, and haiku">

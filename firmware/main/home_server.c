@@ -402,6 +402,7 @@ static char geo_name[65];
 static unsigned geo_count;
 static char *geo_json;
 static int geo_state; /* 0 idle, 1 running, 2 ready, 3 error */
+static int64_t geo_started_us;
 
 static bool geo_copy_string(cJSON *item, const char *key, const cJSON *src, size_t max)
 {
@@ -487,6 +488,7 @@ static bool geo_start(const char *name, unsigned count)
     free(geo_json);
     geo_json = NULL;
     geo_state = 1;
+    geo_started_us = esp_timer_get_time();
     if (xTaskCreate(geo_task, "geo", 24576, NULL, 4, NULL) == pdPASS)
         return true;
     geo_state = 3;
@@ -510,14 +512,55 @@ static int query_screen(httpd_req_t *r)
         return -1;
     return home_screen_index(s);
 }
+static int hex_nibble(unsigned char c)
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    return -1;
+}
+/* httpd_query_key_value copies the query raw. "New York" arrives as New%20York, and searching
+ * for that literal returns no places. Decode before the UTF-8 and length checks. */
+static bool url_decode(const char *in, char *out, size_t cap)
+{
+    size_t n = 0;
+    if (!in || !out || cap < 2)
+        return false;
+    for (const unsigned char *p = (const unsigned char *)in; *p; p++) {
+        unsigned char c = *p;
+        if (c == '%') {
+            if (!p[1] || !p[2])
+                return false;
+            int hi = hex_nibble(p[1]), lo = hex_nibble(p[2]);
+            if (hi < 0 || lo < 0)
+                return false;
+            c = (unsigned char)((hi << 4) | lo);
+            p += 2;
+        } else if (c == '+')
+            c = ' ';
+        if (c < 0x20 || c == 0x7f)
+            return false;
+        if (n + 1 >= cap)
+            return false;
+        out[n++] = (char)c;
+    }
+    out[n] = 0;
+    return n > 0;
+}
 static esp_err_t places_search(httpd_req_t *r)
 {
-    char q[512], name[96], count_s[8];
+    char q[512], raw[200], name[65], count_s[8];
     if (httpd_req_get_url_query_str(r, q, sizeof q) != ESP_OK)
         return error(r, "400 Bad Request", "Missing query");
-    if (httpd_query_key_value(q, "name", name, sizeof name) != ESP_OK || !name[0])
+    esp_err_t named = httpd_query_key_value(q, "name", raw, sizeof raw);
+    if (named == ESP_ERR_HTTPD_RESULT_TRUNC)
+        return error(r, "400 Bad Request", "Invalid place name");
+    if (named != ESP_OK || !raw[0])
         return error(r, "400 Bad Request", "Place name required");
-    if (!home_utf8(name, 64, false))
+    if (!url_decode(raw, name, sizeof name) || !home_utf8(name, 64, false))
         return error(r, "400 Bad Request", "Invalid place name");
     unsigned count = 8;
     if (httpd_query_key_value(q, "count", count_s, sizeof count_s) == ESP_OK) {
@@ -530,6 +573,11 @@ static esp_err_t places_search(httpd_req_t *r)
     bool same = !strcmp(geo_name, name) && geo_count == count;
     int state = geo_state;
     char *ready = NULL;
+    int64_t now_us = esp_timer_get_time();
+    /* A crashed or wedged fetch used to leave state running, so every later search stayed
+     * "searching" or "busy" and the page never got a list. */
+    if (state == 1 && (now_us < geo_started_us || now_us - geo_started_us > INT64_C(26000000)))
+        state = 0;
     if (!online)
         state = -1;
     else if (state == 1 && same)
@@ -799,9 +847,15 @@ static esp_err_t api_inner(httpd_req_t *r)
             memset(&home_runtime.data.calendar, 0, sizeof(home_runtime.data.calendar));
         home_runtime.refresh_requested &= home_sources_wanted(&c);
         bool locale_changed = strcmp(c.locale, home_runtime.config.locale) != 0;
+        /* Units and the desk layout publish from the desk save. A place has no second save,
+         * so the paper has to redraw here or the chosen city never appears. */
+        bool place_changed = strcmp(c.location, home_runtime.config.location) != 0 ||
+                             c.location_ready != home_runtime.config.location_ready ||
+                             c.latitude != home_runtime.config.latitude ||
+                             c.longitude != home_runtime.config.longitude;
         home_runtime.config = c;
-        home_runtime.request_id++; /* Save changes settings; explicit Show publishes them. */
-        if (locale_changed) {
+        home_runtime.request_id++;
+        if (locale_changed || place_changed) {
             home_runtime.dirty = true;
             home_runtime.force_show = true;
         }

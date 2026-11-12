@@ -238,6 +238,20 @@ static void trim(char *s)
         s[--n] = 0;
 }
 
+static bool http_station(const char *url)
+{
+    size_t n;
+    if (!url || strncmp(url, "http://", 7) != 0)
+        return false;
+    n = strlen(url);
+    if (n < 8 || n > 127)
+        return false;
+    for (const unsigned char *p = (const unsigned char *)url; *p; p++)
+        if (*p <= 32 || *p >= 127)
+            return false;
+    return true;
+}
+
 bool jazztrix_settings_import_playlist(const char *text, jazztrix_settings_t *out)
 {
     if (!text || !out)
@@ -265,7 +279,11 @@ bool jazztrix_settings_import_playlist(const char *text, jazztrix_settings_t *ou
             }
             continue;
         }
-        if (!strncmp(line, "http://", 7) || !strncmp(line, "https://", 8)) {
+        if (!strncmp(line, "https://", 8))
+            return false;
+        if (!strncmp(line, "http://", 7)) {
+            if (!http_station(line))
+                return false;
             snprintf(s.radio_url[n], sizeof s.radio_url[n], "%.127s", line);
             if (pending_name[0]) {
                 snprintf(s.radio_name[n], sizeof s.radio_name[n], "%.23s", pending_name);
@@ -276,12 +294,16 @@ bool jazztrix_settings_import_playlist(const char *text, jazztrix_settings_t *ou
         }
     }
     if (n == 0)
-        return false;
+        return true;
     s.radio_count = (uint8_t)n;
     out->radio_count = s.radio_count;
     for (int i = 0; i < n; i++) {
         strcpy(out->radio_name[i], s.radio_name[i]);
         strcpy(out->radio_url[i], s.radio_url[i]);
+    }
+    for (int i = n; i < JAZZTRIX_RADIO_MAX; i++) {
+        out->radio_name[i][0] = 0;
+        out->radio_url[i][0] = 0;
     }
     return true;
 }
@@ -393,6 +415,12 @@ void jazztrix_settings_init(void)
         cached.reserved_pad[0] = 0;
     if (cached.haiku_pick > 30)
         cached.haiku_pick = 0;
+    if (cached.radio_count > JAZZTRIX_RADIO_MAX)
+        cached.radio_count = JAZZTRIX_RADIO_MAX;
+    for (int i = cached.radio_count; i < JAZZTRIX_RADIO_MAX; i++) {
+        cached.radio_name[i][0] = 0;
+        cached.radio_url[i][0] = 0;
+    }
     /* The forecast frame used to be part of the default. A desk that still has that
      * exact set drops it. A frame turned on by hand stays. */
     if (cached.borders ==
@@ -426,6 +454,10 @@ esp_err_t jazztrix_settings_save(const jazztrix_settings_t *in)
     copy.struct_size = (uint16_t)sizeof copy;
     if (copy.radio_count > JAZZTRIX_RADIO_MAX)
         copy.radio_count = JAZZTRIX_RADIO_MAX;
+    for (int i = copy.radio_count; i < JAZZTRIX_RADIO_MAX; i++) {
+        copy.radio_name[i][0] = 0;
+        copy.radio_url[i][0] = 0;
+    }
     if (!copy.nfc_label[0])
         snprintf(copy.nfc_label, sizeof copy.nfc_label, "COFFEE");
     sanitize_order(copy.toolbar_order, JAZZTRIX_TOOLBAR_SLOTS);
@@ -496,7 +528,10 @@ void jazztrix_settings_apply_config(void)
 
 const char *jazztrix_nfc_label(void) { return cached.nfc_label[0] ? cached.nfc_label : "COFFEE"; }
 uint8_t jazztrix_paper_mode(void) { return cached.reserved_pad[0] > 2 ? 0 : cached.reserved_pad[0]; }
-int jazztrix_radio_count(void) { return cached.radio_count > 0 ? cached.radio_count : 2; }
+int jazztrix_radio_count(void)
+{
+    return cached.radio_count > JAZZTRIX_RADIO_MAX ? JAZZTRIX_RADIO_MAX : cached.radio_count;
+}
 const char *jazztrix_radio_name(int i)
 {
     if (i < 0 || i >= jazztrix_radio_count())
@@ -646,9 +681,14 @@ bool jazztrix_settings_decode(const char *json, size_t len, jazztrix_settings_t 
     read_u8_array(cJSON_GetObjectItem(j, "metric_order"), s.metric_order, JAZZTRIX_METRIC_COUNT);
     read_u8_array(cJSON_GetObjectItem(j, "foot_order"), s.foot_order, JAZZTRIX_FOOT_SLOTS);
     cJSON *pl = cJSON_GetObjectItem(j, "playlist");
-    if (cJSON_IsString(pl) && pl->valuestring)
-        jazztrix_settings_import_playlist(pl->valuestring, &s);
-    else {
+    if (cJSON_IsString(pl) && pl->valuestring) {
+        if (!jazztrix_settings_import_playlist(pl->valuestring, &s)) {
+            if (why && why_len)
+                snprintf(why, why_len, "Station address must start with http://");
+            cJSON_Delete(j);
+            return false;
+        }
+    } else {
         cJSON *radios = cJSON_GetObjectItem(j, "radios");
         if (cJSON_IsArray(radios)) {
             int n = 0;
@@ -659,9 +699,15 @@ bool jazztrix_settings_decode(const char *json, size_t len, jazztrix_settings_t 
                     break;
                 cJSON *name = cJSON_GetObjectItem(item, "name");
                 cJSON *url = cJSON_GetObjectItem(item, "url");
-                if (!cJSON_IsString(url) || !url->valuestring)
+                if (!cJSON_IsString(url) || !url->valuestring || !url->valuestring[0])
                     continue;
-                snprintf(s.radio_url[n], sizeof s.radio_url[n], "%.127s", url->valuestring);
+                if (!http_station(url->valuestring)) {
+                    if (why && why_len)
+                        snprintf(why, why_len, "Station address must start with http://");
+                    cJSON_Delete(j);
+                    return false;
+                }
+                snprintf(s.radio_url[n], sizeof s.radio_url[n], "%s", url->valuestring);
                 if (cJSON_IsString(name) && name->valuestring)
                     snprintf(s.radio_name[n], sizeof s.radio_name[n], "%.23s", name->valuestring);
                 else
@@ -669,6 +715,10 @@ bool jazztrix_settings_decode(const char *json, size_t len, jazztrix_settings_t 
                 n++;
             }
             s.radio_count = (uint8_t)n;
+            for (int i = n; i < JAZZTRIX_RADIO_MAX; i++) {
+                s.radio_name[i][0] = 0;
+                s.radio_url[i][0] = 0;
+            }
         }
     }
     cJSON_Delete(j);

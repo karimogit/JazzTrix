@@ -1739,7 +1739,8 @@ function setPlaceResults(list) {
 }
 async function devicePlaceSearch(q) {
   const url = '/api/places/search?name=' + encodeURIComponent(q) + '&count=8';
-  const deadline = Date.now() + 22000;
+  /* The device allows the geocoder 25s, then gives up at 26s. Stay past both. */
+  const deadline = Date.now() + 30000;
   let j = await api(url, { headers: hdr() });
   while (j && (j.state === 'searching' || j.state === 'busy')) {
     if (Date.now() > deadline) {

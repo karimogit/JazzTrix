@@ -4,6 +4,7 @@
 #include "nvs_flash.h"
 #include "esp_crc.h"
 #include "esp_log.h"
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -232,14 +233,15 @@ esp_err_t home_store_stats_load(home_counters_t *n)
     size_t size;
     esp_err_t e;
     void *p = get_record(3, &size, &e);
-    if (p) {
+    bool found = p != NULL;
+    if (found) {
         if (size == sizeof(*n))
             memcpy(n, p, size);
         else
             e = ESP_ERR_INVALID_SIZE;
         free(p);
     }
-    return p && e == ESP_OK ? ESP_OK : e;
+    return found && e == ESP_OK ? ESP_OK : e;
 }
 
 /* The power log. Like the counters: a record of another size (another firmware) is skipped,
@@ -253,12 +255,13 @@ esp_err_t home_store_power_load(home_power_log_t *l)
     size_t size;
     esp_err_t e;
     void *p = get_record(4, &size, &e);
-    if (p) {
+    bool found = p != NULL;
+    if (found) {
         if (size == sizeof(*l))
             memcpy(l, p, size);
         else
             e = ESP_ERR_INVALID_SIZE;
         free(p);
     }
-    return p ? e : (e == ESP_OK ? ESP_ERR_NOT_FOUND : e);
+    return found ? e : (e == ESP_OK ? ESP_ERR_NOT_FOUND : e);
 }

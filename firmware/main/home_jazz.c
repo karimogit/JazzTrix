@@ -806,6 +806,8 @@ static bool play_url(const char *url, mp3dec_t *dec)
     if (!in || !pcm || strncmp(url, "http://", 7) != 0) {
         free(in);
         free(pcm);
+        if (url && strncmp(url, "http://", 7) != 0)
+            ESP_LOGW(TAG, "Station address must start with http://");
         return false;
     }
     int got = 0;
@@ -948,6 +950,12 @@ static void jazz_task_fn(void *unused)
         bool played = false;
         int tries = jazztrix_radio_count();
         station_bump = false;
+        if (tries <= 0) {
+            vTaskDelay(pdMS_TO_TICKS(5000));
+            continue;
+        }
+        if (station_idx < 0 || station_idx >= tries)
+            station_idx = 0;
         while (jazz_run && !station_bump && !played && tries-- > 0) {
             const char *url = jazztrix_radio_url(station_idx);
             const char *label = jazztrix_radio_name(station_idx);

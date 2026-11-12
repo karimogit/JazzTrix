@@ -402,6 +402,7 @@ static char geo_name[65];
 static unsigned geo_count;
 static char *geo_json;
 static int geo_state; /* 0 idle, 1 running, 2 ready, 3 error */
+static unsigned geo_gen;
 static int64_t geo_started_us;
 
 static bool geo_copy_string(cJSON *item, const char *key, const cJSON *src, size_t max)
@@ -459,11 +460,12 @@ static char *compact_geocode(const char *body, size_t size)
 static void geo_task(void *arg)
 {
     char name[65];
-    unsigned count;
+    unsigned count, generation;
     (void)arg;
     home_lock();
     snprintf(name, sizeof name, "%s", geo_name);
     count = geo_count;
+    generation = geo_gen;
     home_unlock();
     char *body = NULL;
     size_t size = 0;
@@ -471,7 +473,8 @@ static void geo_task(void *arg)
     char *compact = e == ESP_OK && body ? compact_geocode(body, size) : NULL;
     free(body);
     home_lock();
-    if (!strcmp(geo_name, name) && geo_count == count && geo_state == 1) {
+    /* A newer search, or a wedge recovery, bumps geo_gen. This task must not publish over it. */
+    if (geo_gen == generation && !strcmp(geo_name, name) && geo_count == count && geo_state == 1) {
         free(geo_json);
         geo_json = compact;
         geo_state = compact ? 2 : 3;
@@ -483,6 +486,7 @@ static void geo_task(void *arg)
 }
 static bool geo_start(const char *name, unsigned count)
 {
+    geo_gen++;
     snprintf(geo_name, sizeof geo_name, "%s", name);
     geo_count = count;
     free(geo_json);
@@ -491,7 +495,7 @@ static bool geo_start(const char *name, unsigned count)
     geo_started_us = esp_timer_get_time();
     if (xTaskCreate(geo_task, "geo", 24576, NULL, 4, NULL) == pdPASS)
         return true;
-    geo_state = 3;
+    geo_state = 0;
     return false;
 }
 static esp_err_t places_state(httpd_req_t *r, const char *state)
@@ -575,18 +579,28 @@ static esp_err_t places_search(httpd_req_t *r)
     char *ready = NULL;
     int64_t now_us = esp_timer_get_time();
     /* A crashed or wedged fetch used to leave state running, so every later search stayed
-     * "searching" or "busy" and the page never got a list. */
-    if (state == 1 && (now_us < geo_started_us || now_us - geo_started_us > INT64_C(26000000)))
+     * "searching" or "busy" and the page never got a list. Retire that generation. geo_start
+     * bumps geo_gen, so the late task cannot store its result over the new one. */
+    if (state == 1 && (now_us < geo_started_us || now_us - geo_started_us > INT64_C(26000000))) {
+        geo_state = 0;
         state = 0;
+    }
     if (!online)
         state = -1;
     else if (state == 1 && same)
         state = 1;
     else if (state == 1)
         state = 4; /* another search is already running */
-    else if (state == 2 && same && geo_json)
+    else if (state == 2 && same && geo_json) {
         ready = strdup(geo_json);
-    if (online && !ready && state != 1 && state != 4) {
+        if (!ready)
+            state = 3;
+    } else if (state == 3 && same) {
+        /* Report the failure once. Leaving it running made every poll start another fetch,
+         * and the page waited out its deadline before it would try the phone. */
+        geo_state = 0;
+        state = 3;
+    } else if (online) {
         if (!geo_start(name, count))
             state = 3;
         else
@@ -674,6 +688,64 @@ static bool known_locale(const char *s)
     return s && (!strcmp(s, "en") || !strcmp(s, "pl") || !strcmp(s, "zh") || !strcmp(s, "es") ||
                  !strcmp(s, "de") || !strcmp(s, "fr") || !strcmp(s, "it") || !strcmp(s, "pt") ||
                  !strcmp(s, "nl"));
+}
+/* token_used is 0 when the slot is empty, otherwise a stamp. A higher stamp is newer.
+ * Records written before stamps existed stored 1 for every paired phone, so the first
+ * recycle still starts at slot 0 and each later pairing moves to the next oldest. */
+static int pairing_slot(home_secrets_t *s)
+{
+    int free_slot = -1;
+    int oldest = -1;
+    uint8_t oldest_stamp = 0;
+    uint8_t max_stamp = 0;
+    for (int i = 0; i < 4; i++) {
+        if (!s->token_used[i]) {
+            if (free_slot < 0)
+                free_slot = i;
+            continue;
+        }
+        if (oldest < 0 || s->token_used[i] < oldest_stamp) {
+            oldest = i;
+            oldest_stamp = s->token_used[i];
+        }
+        if (s->token_used[i] > max_stamp)
+            max_stamp = s->token_used[i];
+    }
+    int slot = free_slot >= 0 ? free_slot : oldest;
+    if (slot < 0)
+        return -1;
+    if (free_slot < 0) {
+        ESP_LOGW(TAG, "Pairing slots full; replacing oldest slot %d", slot);
+        memset(s->token_hash[slot], 0, 32);
+        s->token_used[slot] = 0;
+        max_stamp = 0;
+        for (int i = 0; i < 4; i++)
+            if (s->token_used[i] > max_stamp)
+                max_stamp = s->token_used[i];
+    }
+    uint8_t stamp;
+    if (max_stamp == 255) {
+        uint8_t ranked[4];
+        int n = 0;
+        for (int i = 0; i < 4; i++)
+            if (i != slot && s->token_used[i])
+                ranked[n++] = (uint8_t)i;
+        for (int a = 1; a < n; a++) {
+            uint8_t v = ranked[a];
+            int b = a;
+            while (b > 0 && s->token_used[ranked[b - 1]] > s->token_used[v]) {
+                ranked[b] = ranked[b - 1];
+                b--;
+            }
+            ranked[b] = v;
+        }
+        for (int i = 0; i < n; i++)
+            s->token_used[ranked[i]] = (uint8_t)(i + 1);
+        stamp = (uint8_t)(n + 1);
+    } else
+        stamp = (uint8_t)(max_stamp + 1);
+    s->token_used[slot] = stamp;
+    return slot;
 }
 static esp_err_t api_inner(httpd_req_t *r)
 {
@@ -905,17 +977,12 @@ static esp_err_t api_inner(httpd_req_t *r)
             goto done;
         }
         home_secrets_t s = home_runtime.secrets;
-        int slot = -1;
-        for (int i = 0; i < 4; i++)
-            if (!s.token_used[i]) {
-                slot = i;
-                break;
-            }
+        int slot = pairing_slot(&s);
         if (slot < 0) {
-            slot = 0;
-            ESP_LOGW(TAG, "Pairing slots full; replacing slot 0");
-            memset(s.token_hash[0], 0, 32);
-            s.token_used[0] = 0;
+            home_unlock();
+            memset(&s, 0, sizeof(s));
+            result = error(r, "503 Service Unavailable", "Pairing unavailable");
+            goto done;
         }
         cJSON *out = cJSON_CreateObject();
         char *encoded = NULL;
@@ -933,7 +1000,6 @@ static esp_err_t api_inner(httpd_req_t *r)
             goto done;
         }
         memcpy(s.token_hash[slot], hash, 32);
-        s.token_used[slot] = 1;
         if (home_store_secrets(&s) != ESP_OK) {
             home_unlock();
             memset(text, 0, sizeof(text));

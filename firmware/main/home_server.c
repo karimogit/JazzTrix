@@ -114,6 +114,22 @@ static bool origin_ok(httpd_req_t *r)
     }
     return true;
 }
+/* Exact setup address. A prefix match also accepted 192.168.4.10 and
+ * 192.168.4.100, so pairing from a home LAN in that range never closed setup. */
+static bool setup_ap_host(const char *host)
+{
+    char clean[96];
+    if (!host || !host[0])
+        return false;
+    snprintf(clean, sizeof clean, "%s", host);
+    char *colon = strchr(clean, ':');
+    if (colon) {
+        if (strcmp(colon, ":80"))
+            return false;
+        *colon = 0;
+    }
+    return !strcmp(clean, "192.168.4.1");
+}
 static int auth(httpd_req_t *r)
 {
     char value[80];
@@ -295,11 +311,8 @@ static esp_err_t status(httpd_req_t *r, int token)
         count += h->secrets.token_used[i] ? 1 : 0;
     bool ok = j && cJSON_AddBoolToObject(j, "paired", count > 0) &&
               cJSON_AddBoolToObject(j, "online", h->online) &&
-              cJSON_AddBoolToObject(j, "setup", h->setup) &&
               cJSON_AddStringToObject(j, "name", h->config.name) &&
               cJSON_AddStringToObject(j, "version", esp_app_get_description()->version) &&
-              cJSON_AddStringToObject(j, "address", h->address) &&
-              cJSON_AddStringToObject(j, "hostname", h->hostname) &&
               cJSON_AddStringToObject(j, "state", phases[h->phase]) &&
               cJSON_AddNumberToObject(j, "generation", h->generation);
     ok = ok &&
@@ -309,27 +322,27 @@ static esp_err_t status(httpd_req_t *r, int token)
     ok = ok && cJSON_AddBoolToObject(j, "pending", h->dirty || h->phase == 1 || h->phase == 2) &&
          cJSON_AddNumberToObject(j, "refresh_ms", h->refresh_ms) &&
          cJSON_AddNumberToObject(j, "render_ms", h->render_ms) &&
-         cJSON_AddBoolToObject(j, "time_valid", h->time_valid) &&
-         cJSON_AddNumberToObject(j, "pairing_seconds",
-                                 h->pair_until > esp_timer_get_time()
-                                     ? (h->pair_until - esp_timer_get_time()) / 1000000
-                                     : 0) &&
-         /* The last gesture the device made sense of: key 1 up, 2 down, 4 the round one,
-          * how long it was held, and what it did. Lets a reader check a press without a cable. */
-         cJSON_AddNumberToObject(j, "last_key", h->key_last) &&
-         cJSON_AddNumberToObject(j, "last_key_ms", h->key_last_ms) &&
-         cJSON_AddStringToObject(j, "last_key_action",
-                                 h->key_last_what ? h->key_last_what : "") &&
-         /* Seconds since the weather source was last asked: tells a gesture apart from a
-          * screen that simply had nothing new to draw. */
-         cJSON_AddNumberToObject(j, "weather_checked_s",
-                                 h->data.weather.meta.checked_at > 0 && time(NULL) > 0
-                                     ? (double)(time(NULL) - h->data.weather.meta.checked_at)
-                                     : -1);
+         cJSON_AddBoolToObject(j, "time_valid", h->time_valid);
     if (token >= 0 && ok) {
+        /* Address, pairing window, and the last button stay with a paired phone. */
+        ok = ok && cJSON_AddBoolToObject(j, "setup", h->setup) &&
+             cJSON_AddStringToObject(j, "address", h->address) &&
+             cJSON_AddStringToObject(j, "hostname", h->hostname) &&
+             cJSON_AddNumberToObject(j, "pairing_seconds",
+                                     h->pair_until > esp_timer_get_time()
+                                         ? (h->pair_until - esp_timer_get_time()) / 1000000
+                                         : 0) &&
+             cJSON_AddNumberToObject(j, "last_key", h->key_last) &&
+             cJSON_AddNumberToObject(j, "last_key_ms", h->key_last_ms) &&
+             cJSON_AddStringToObject(j, "last_key_action",
+                                     h->key_last_what ? h->key_last_what : "") &&
+             cJSON_AddNumberToObject(j, "weather_checked_s",
+                                     h->data.weather.meta.checked_at > 0 && time(NULL) > 0
+                                         ? (double)(time(NULL) - h->data.weather.meta.checked_at)
+                                         : -1);
         const home_battery_t *b = &h->battery;
         cJSON *battery = cJSON_AddObjectToObject(j, "battery");
-        ok = battery && cJSON_AddBoolToObject(battery, "valid", b->valid) &&
+        ok = ok && battery && cJSON_AddBoolToObject(battery, "valid", b->valid) &&
              (b->valid ? cJSON_AddNumberToObject(battery, "millivolts", b->millivolts)
                        : cJSON_AddNullToObject(battery, "millivolts")) &&
              (b->valid && b->charge_valid && b->percent_estimate >= 0
@@ -620,7 +633,7 @@ static esp_err_t places_search(httpd_req_t *r)
         return places_state(r, "busy");
     return places_state(r, "searching");
 }
-static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed, bool sharing)
+static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed)
 {
     int screen = query_screen(r);
     if (screen < 0)
@@ -638,8 +651,10 @@ static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed, bool
     *c = home_runtime.config;
     *d = home_runtime.data;
     bool exists = home_runtime.frame_valid;
-    if (sharing && home_runtime.displayed_screen < 0)
-        exists = false; /* Setup frames contain access credentials, never export them. */
+    /* Setup frames contain the soft-AP password and the pairing code. */
+    bool setup_frame = home_runtime.setup || home_runtime.displayed_screen < 0;
+    if (setup_frame)
+        exists = false;
     uint32_t gen = home_runtime.generation;
     if (confirmed && exists)
         memcpy(frame, home_runtime.frame, HOME_FRAME_BYTES);
@@ -649,7 +664,7 @@ static esp_err_t preview(httpd_req_t *r, const char *draft, bool confirmed, bool
         free(d);
         free(frame);
         return error(r, "503 Service Unavailable",
-                     sharing ? "Setup screens cannot be shared" : "No confirmed frame");
+                     setup_frame ? "Setup screens cannot be shared" : "No confirmed frame");
     }
     if (draft) {
         char why[128];
@@ -826,11 +841,11 @@ static esp_err_t api_inner(httpd_req_t *r)
         if (!strcmp(path, "/api/desk"))
             return json_send(r, jazztrix_settings_json());
         if (!strcmp(path, "/api/frame"))
-            return preview(r, NULL, true, false);
+            return preview(r, NULL, true);
         if (!strcmp(path, "/api/share-frame"))
-            return preview(r, NULL, true, true);
+            return preview(r, NULL, true);
         if (!strcmp(path, "/api/preview"))
-            return preview(r, NULL, false, false);
+            return preview(r, NULL, false);
         return error(r, "404 Not Found", "Unknown endpoint");
     }
     if (r->method != HTTP_POST && !(r->method == HTTP_PUT &&
@@ -842,7 +857,7 @@ static esp_err_t api_inner(httpd_req_t *r)
     esp_err_t result = ESP_OK;
     cJSON *j = NULL;
     if (r->method == HTTP_POST && !strcmp(path, "/api/preview")) {
-        result = preview(r, b, false, false);
+        result = preview(r, b, false);
         goto done;
     }
     if (r->method == HTTP_POST && !strcmp(path, "/api/locale")) {
@@ -1011,8 +1026,9 @@ static esp_err_t api_inner(httpd_req_t *r)
         }
         home_runtime.secrets = s;
         char host[96];
+        host[0] = 0;
         header(r, "Host", host, sizeof(host));
-        if (home_runtime.online && strncmp(host, "192.168.4.1", 11)) {
+        if (home_runtime.online && !setup_ap_host(host)) {
             home_runtime.setup = false;
             home_runtime.dirty = true;
             home_runtime.request_id++;

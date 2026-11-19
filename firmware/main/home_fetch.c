@@ -763,7 +763,20 @@ static esp_err_t fetch_scoped(const char *initial, const home_source_meta_t *old
 static esp_err_t fetch(const char *initial, const home_source_meta_t *old, headers_t *h,
                        char **text, size_t *size)
 {
-    return fetch_scoped(initial, old, h, text, size, NULL);
+    /* Feed and calendar stay on the host the user saved. An absolute redirect
+     * to anywhere else is refused. Air and geocoding pass their own lock. */
+    char host[254];
+    if (!initial || strncmp(initial, "https://", 8))
+        return ESP_ERR_INVALID_ARG;
+    const char *s = initial + 8, *p = s;
+    while (*p && *p != '/' && *p != '?')
+        p++;
+    size_t n = (size_t)(p - s);
+    if (n == 0 || n >= sizeof host)
+        return ESP_ERR_INVALID_ARG;
+    memcpy(host, s, n);
+    host[n] = 0;
+    return fetch_scoped(initial, old, h, text, size, host);
 }
 esp_err_t home_fetch_location(char **json, size_t *size)
 {

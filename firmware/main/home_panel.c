@@ -67,6 +67,11 @@ static const char *TAG = "home_panel";
 static panel_state_t panel_state = PANEL_NEW;
 static spi_device_handle_t panel_spi;
 static bool panel_mono;
+static bool rail_ready;
+/* Set only after spi_device_queue_trans accepts the static transaction.
+ * Cleared once get_trans_result returns it. A timeout leaves this set so the
+ * static buffer is not rewritten while IDF still owns it. */
+static bool spi_outstanding;
 static TaskHandle_t owner_task;
 static portMUX_TYPE owner_guard = portMUX_INITIALIZER_UNLOCKED;
 /* A timed-out transaction may still belong to IDF. Static storage must remain
@@ -103,11 +108,27 @@ static esp_err_t check_owner(bool claim)
     return matches ? ESP_OK : ESP_ERR_INVALID_STATE;
 }
 
+/* GPIO only. Must not call fault or touch the SPI transaction: this runs
+ * while a timed-out transfer may still own `transaction`. */
+static void drop_rail(void)
+{
+    if (!rail_ready)
+        return;
+    /* Leave chip-select alone while a transaction still owns the bus. */
+    if (!spi_outstanding)
+        gpio_set_level(PANEL_CS, 1);
+    gpio_hold_dis(PANEL_RAIL);
+    gpio_set_level(PANEL_RAIL, 0);
+    gpio_hold_en(PANEL_RAIL);
+}
+
 static esp_err_t fault(esp_err_t error, const char *stage)
 {
-    panel_state = PANEL_FAULT;
-    ESP_LOGE(TAG, "FAULT stage=%s error=%s; recovery decision required, no retry",
-             stage, esp_err_to_name(error));
+    if (panel_state != PANEL_FAULT) {
+        panel_state = PANEL_FAULT;
+        drop_rail();
+        ESP_LOGE(TAG, "FAULT stage=%s error=%s; rail off", stage, esp_err_to_name(error));
+    }
     return error;
 }
 
@@ -186,14 +207,19 @@ static esp_err_t transfer(int data_mode, const uint8_t *bytes, size_t len)
     transaction.tx_buffer = transfer_buffer;
     PANEL_TRY(gpio_set_level(PANEL_DC, data_mode), "SPI DC");
     PANEL_TRY(gpio_set_level(PANEL_CS, 0), "SPI CS assert");
-    PANEL_TRY(spi_device_queue_trans(panel_spi, &transaction,
-                                    ticks_at_least_one(SPI_TIMEOUT_MS)), "SPI queue");
+    esp_err_t queued = spi_device_queue_trans(panel_spi, &transaction,
+                                             ticks_at_least_one(SPI_TIMEOUT_MS));
+    if (queued != ESP_OK)
+        return fault(queued, "SPI queue");
+    spi_outstanding = true;
     spi_transaction_t *completed = NULL;
-    PANEL_TRY(spi_device_get_trans_result(panel_spi, &completed,
-                                         ticks_at_least_one(SPI_TIMEOUT_MS)), "SPI completion");
-    if (completed != &transaction) {
+    esp_err_t done = spi_device_get_trans_result(panel_spi, &completed,
+                                                ticks_at_least_one(SPI_TIMEOUT_MS));
+    if (done != ESP_OK)
+        return fault(done, "SPI completion");
+    spi_outstanding = false;
+    if (completed != &transaction)
         return fault(ESP_ERR_INVALID_STATE, "unexpected SPI transaction");
-    }
     PANEL_TRY(gpio_set_level(PANEL_CS, 1), "SPI CS release");
     return ESP_OK;
 }
@@ -389,6 +415,7 @@ esp_err_t home_panel_init(void)
         .intr_type = GPIO_INTR_DISABLE,
     };
     PANEL_TRY(gpio_config(&output_config), "GPIO outputs");
+    rail_ready = true;
     PANEL_TRY(set_rail(0), "initial rail off");
     PANEL_TRY(gpio_set_level(PANEL_RST, 1), "initial reset release");
     PANEL_TRY(gpio_set_level(PANEL_CS, 1), "initial chip deselect");
@@ -419,6 +446,34 @@ esp_err_t home_panel_init(void)
     PANEL_TRY(spi_bus_add_device(PANEL_SPI, &device_config, &panel_spi), "SPI device init");
     panel_state = PANEL_OFF;
     ESP_LOGI(TAG, "Panel transport initialized: 400x300 SPI3 40MHz, rail off");
+    return ESP_OK;
+}
+
+esp_err_t home_panel_recover(void)
+{
+    if (check_owner(false) != ESP_OK)
+        return ESP_ERR_INVALID_STATE;
+    if (panel_state == PANEL_OFF)
+        return ESP_OK;
+    if (panel_state == PANEL_NEW)
+        return ESP_ERR_INVALID_STATE;
+    drop_rail();
+    if (spi_outstanding) {
+        if (!panel_spi)
+            return ESP_ERR_INVALID_STATE;
+        spi_transaction_t *completed = NULL;
+        esp_err_t err = spi_device_get_trans_result(panel_spi, &completed,
+                                                    ticks_at_least_one(SPI_TIMEOUT_MS));
+        if (err != ESP_OK || completed != &transaction) {
+            ESP_LOGE(TAG, "SPI transaction still outstanding; staying in FAULT");
+            return err != ESP_OK ? err : ESP_ERR_INVALID_STATE;
+        }
+        spi_outstanding = false;
+    }
+    if (rail_ready)
+        gpio_set_level(PANEL_CS, 1);
+    panel_state = PANEL_OFF;
+    ESP_LOGW(TAG, "Panel recovered; rail off, ready for another picture");
     return ESP_OK;
 }
 
@@ -462,7 +517,7 @@ esp_err_t home_panel_show(const uint8_t *frame, size_t len)
     bool probed = false;
     int kind = paper_kind(&probed);
     if (kind != 1 && kind != 2)
-        return ESP_FAIL;
+        return fault(ESP_FAIL, "paper kind");
     if (probed)
         PANEL_TRY(panel_reset(), "reset after recognize");
     panel_mono = kind == 1;

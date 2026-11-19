@@ -26,8 +26,16 @@ esp_err_t home_panel_init(void);
  * ESP_OK means SPI/observed BUSY cycle/normal power-down completed; it does
  * not prove optical appearance. Invalid arguments do not touch the panel.
  * BUSY is bounded to 120 s per stage; refresh must assert BUSY within 1 s.
- * Hardware error latches FAULT: do not retry/reset/power-cycle automatically. */
+ * A hardware error drops the power rail and latches FAULT. home_panel_recover
+ * returns the controller to OFF once any in-flight SPI transaction has
+ * finished, so a later show can try again. It does not reuse a transaction
+ * that is still outstanding. */
 esp_err_t home_panel_show(const uint8_t *frame, size_t len);
+
+/* After a failed show: rail off, chip-select released, and OFF when the SPI
+ * bus is idle. ESP_ERR_INVALID_STATE means a transaction is still in flight
+ * and the FAULT latch stays. */
+esp_err_t home_panel_recover(void);
 
 /* Called about every 50 ms while the panel is busy. A refresh takes some 25 seconds, and the
  * task that owns the panel is the same one that watches the buttons: without this hook every

@@ -1216,12 +1216,14 @@ bool home_parse_article_truncated(void)
     return last_article_cut;
 }
 
-static bool ics_line(const char **pp, const char *end, char *out, size_t cap)
+/* 1 a line, 0 end of input, -1 the logical line does not fit in out. */
+static int ics_line(const char **pp, const char *end, char *out, size_t cap)
 {
     const char *p = *pp;
     size_t n = 0;
+    bool overflow = false;
     if (p >= end)
-        return false;
+        return 0;
     while (p < end) {
         if (*p == '\r' || *p == '\n') {
             if (*p == '\r' && p + 1 < end && p[1] == '\n')
@@ -1234,12 +1236,14 @@ static bool ics_line(const char **pp, const char *end, char *out, size_t cap)
             break;
         }
         if (n + 1 < cap)
-            out[n++] = *p;
+            out[n++] = (char)*p;
+        else
+            overflow = true;
         p++;
     }
     out[n] = 0;
     *pp = p;
-    return true;
+    return overflow ? -1 : 1;
 }
 static void ics_unescape(const char *in, char *out, size_t cap)
 {
@@ -1345,7 +1349,8 @@ bool home_parse_calendar(const char *ics, size_t len, home_calendar_t *out, int6
     char summary[HOME_CAL_TITLE];
     summary[0] = 0;
     char line[1024];
-    while (ics_line(&p, end, line, sizeof line)) {
+    int line_rc;
+    while ((line_rc = ics_line(&p, end, line, sizeof line)) > 0) {
         if (!strcmp(line, "BEGIN:VCALENDAR")) {
             calendar = true;
             continue;
@@ -1404,6 +1409,8 @@ bool home_parse_calendar(const char *ics, size_t len, home_calendar_t *out, int6
             }
         }
     }
+    if (line_rc < 0)
+        return fail(error, "Calendar line too long");
     if (!calendar)
         return fail(error, "Not a calendar");
     out->meta.valid = true;

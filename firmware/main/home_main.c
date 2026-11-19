@@ -158,6 +158,10 @@ static int pending_single_key;
 static int64_t pending_single_at;
 static int round_tap_count;
 static int64_t round_tap_at;
+/* After a failed refresh the rail is off and the controller is back at OFF.
+ * The next automatic attempt waits, so a dead BUSY line cannot turn the
+ * supply on every pass of the loop. A press still goes through immediately. */
+static int64_t panel_retry_at;
 static void action(int key);
 
 /* Three or more quick taps on the round button: redraw only, no radio toggle and no download. */
@@ -758,6 +762,7 @@ void home_loop_step(void)
         }
     }
     if (phase != 3 && dirty && !hold_paper && !(info_open && loop_drew_info) &&
+        (force || mono >= panel_retry_at) &&
         (!quiet || setup || leaving_setup || manual_request || mono < manual ||
          !home_runtime.frame_valid)) {
         char ssid[33], pass[17], code[7], address[48];
@@ -819,7 +824,7 @@ void home_loop_step(void)
         if (!home_hash(work, HOME_FRAME_BYTES, hash)) {
             ESP_LOGE(TAG, "Frame hash failure");
             home_lock();
-            home_runtime.phase = 3;
+            home_runtime.phase = 0;
             home_unlock();
             return;
         }
@@ -863,12 +868,23 @@ void home_loop_step(void)
             loop_drew_setup = setup;
             loop_drew_info = info_open;
             home_runtime.phase = 0;
+            panel_retry_at = 0;
             if (home_runtime.request_id == request_id)
                 home_runtime.pending_screen = -1;
             if (home_runtime.manual_id == manual_id)
                 home_runtime.pending_manual = false;
-        } else
-            home_runtime.phase = 3;
+        } else {
+            home_unlock();
+            esp_err_t recovered = home_panel_recover();
+            home_lock();
+            if (recovered == ESP_OK) {
+                /* The picture was not stored, so ask for it again after the pause. */
+                home_runtime.phase = 0;
+                home_runtime.dirty = true;
+                panel_retry_at = esp_timer_get_time() + INT64_C(900000000);
+            } else
+                home_runtime.phase = 3;
+        }
         ESP_LOGI(TAG,
                  "DISPLAY state=%s generation=%lu screen=%s refresh_ms=%lu render_ms=%lu "
                  "heap=%lu psram=%lu stack_min=%lu",
